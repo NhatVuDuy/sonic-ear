@@ -3,7 +3,7 @@ import { PracticePage } from '@/pages/Practice'
 
 function Header() {
   return (
-    <header className="flex items-center justify-between border-b border-[rgba(201,168,76,.15)] bg-[rgba(13,11,8,.8)] px-8 py-4 backdrop-blur-md">
+    <header className="flex items-center justify-between border-b border-[rgba(201,168,76,.15)] bg-[rgba(13,11,8,.8)] px-4 py-3 sm:px-8 sm:py-4 backdrop-blur-md">
       <div>
         <div className="flex items-center gap-2.5 font-display text-[1.4rem] font-bold tracking-wide text-[#c9a84c]">
           <svg width="26" height="26" viewBox="0 0 32 32" fill="none">

@@ -84,7 +84,7 @@ export function IntervalModule() {
               <span className="text-[#8a7d6a]">→</span>
               <NoteBubble>{answered ? NOTE_DISPLAY[NOTE_NAMES.indexOf(q.n2.replace(/\d/,'') as any)] : '?'}</NoteBubble>
             </div>
-            <p className="mt-2 font-mono text-[0.7rem] text-[#8a7d6a]">Space = phát lại · 1–{opts.length} = đáp án</p>
+            <p className="mt-2 hidden sm:block font-mono text-[0.7rem] text-[#8a7d6a]">Space = phát lại · 1–{opts.length} = đáp án</p>
           </div>
         </div>
 

@@ -59,27 +59,42 @@ export function PracticePage() {
   return (
     <div className="flex flex-col" style={{ minHeight: 'calc(100vh - 110px)' }}>
       {/* Stage tabs */}
-      <div className="flex overflow-x-auto border-b border-white/[0.08] bg-[rgba(13,11,8,.55)] px-8">
+      <div className="flex overflow-x-auto border-b border-white/[0.08] bg-[rgba(13,11,8,.55)] px-2 sm:px-8">
         {STAGES.map(s => (
           <button
             key={s.id}
             onClick={() => setStage(s.id)}
-            className={`flex-shrink-0 border-b-2 px-5 py-3 font-mono text-[.75rem] tracking-[.12em] transition-all duration-300 cursor-pointer select-none ${
+            className={`flex-shrink-0 border-b-2 px-3 sm:px-5 py-3 font-mono text-[.7rem] sm:text-[.75rem] tracking-[.08em] sm:tracking-[.12em] transition-all duration-300 cursor-pointer select-none ${
               s.id === currentStage
                 ? 'border-[#c9a84c] text-[#c9a84c]'
                 : 'border-transparent text-[#8a7d6a] hover:text-[#c9a84c]'
             }`}
           >
-            <span className={`mr-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full text-[.58rem] text-[#0d0b08] ${s.id===currentStage?'bg-[#c9a84c]':'bg-[#7a6230]'}`}>{s.num}</span>
+            <span className={`mr-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-[.58rem] text-[#0d0b08] ${s.id===currentStage?'bg-[#c9a84c]':'bg-[#7a6230]'}`}>{s.num}</span>
             {s.label}
           </button>
         ))}
       </div>
 
+      {/* Mobile stats bar */}
+      <div className="md:hidden flex items-center gap-3 border-b border-white/[0.08] bg-[rgba(18,15,11,.65)] px-4 py-2">
+        <div className="flex flex-1 gap-2">
+          <StatBox value={correct} label="ĐÚNG" />
+          <StatBox value={wrong} label="SAI" />
+          <StatBox value={acc} label="%" />
+        </div>
+        <div className="w-20 flex-shrink-0">
+          <div className="mb-1 flex justify-between font-mono text-[.58rem] text-[#8a7d6a]">
+            <span>Lv.{level}</span><span>{xp}/{need}</span>
+          </div>
+          <ProgressBar value={xp} max={need} />
+        </div>
+      </div>
+
       {/* Main layout */}
-      <div className="flex flex-1">
-        {/* Left panel */}
-        <div className="flex w-72 min-w-[240px] flex-col gap-4 border-r border-white/[0.08] bg-[rgba(18,15,11,.65)] p-5">
+      <div className="flex flex-1 flex-col md:flex-row">
+        {/* Left panel — desktop only */}
+        <div className="hidden md:flex w-72 min-w-[240px] flex-col gap-4 border-r border-white/[0.08] bg-[rgba(18,15,11,.65)] p-5">
           <div>
             <div className="font-display mb-2 italic text-[#8a7d6a]">Tiến độ hôm nay</div>
             <div className="flex gap-2">
@@ -118,7 +133,7 @@ export function PracticePage() {
         </div>
 
         {/* Right panel */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6">
           {currentStage === 'interval' && <IntervalModule />}
           {currentStage === 'chord'    && <ChordModule />}
           {currentStage === 'scale'    && <ScaleModule />}
