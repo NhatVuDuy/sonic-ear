@@ -1,0 +1,1 @@
+export { ScaleModule } from './ScaleModule'

@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SonicEar – Luyện Cảm Âm</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:#c9a84c; --gold-l:#e8c96d; --gold-d:#7a6230;
+  --dark:#0d0b08; --surface:#1a1610;
+  --text:#e8dcc8; --dim:#8a7d6a;
+  --wkey:#f8f4ec; --bkey:#1a1410;
+  --ok:#4caf82; --bad:#c94c4c;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--dark);color:var(--text);font-family:'Cormorant Garamond',serif;min-height:100vh;overflow-x:hidden;}
+
+/* BG */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.03;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px;}
+
+/* LAYOUT */
+.app{position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column;}
+header{padding:20px 36px 14px;border-bottom:1px solid rgba(201,168,76,.15);display:flex;align-items:center;justify-content:space-between;background:rgba(13,11,8,.75);backdrop-filter:blur(10px);}
+.logo{font-family:'Playfair Display',serif;font-size:1.45rem;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:10px;}
+.logo-sub{font-size:.68rem;letter-spacing:.2em;color:var(--dim);font-family:'DM Mono',monospace;margin-top:2px;}
+.badge{display:flex;align-items:center;gap:7px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);padding:7px 14px;border-radius:40px;font-family:'DM Mono',monospace;font-size:.76rem;color:var(--gold-l);}
+.stages{display:flex;padding:0 36px;border-bottom:1px solid rgba(201,168,76,.1);background:rgba(13,11,8,.55);overflow-x:auto;}
+.tab{padding:12px 18px;cursor:pointer;font-size:.76rem;letter-spacing:.12em;font-family:'DM Mono',monospace;color:var(--dim);border-bottom:2px solid transparent;transition:all .3s;white-space:nowrap;user-select:none;}
+.tab:hover{color:var(--gold);}
+.tab.on{color:var(--gold);border-bottom-color:var(--gold);}
+.tnum{display:inline-flex;width:16px;height:16px;background:var(--gold-d);border-radius:50%;align-items:center;justify-content:center;font-size:.58rem;margin-right:5px;color:var(--dark);}
+.tab.on .tnum{background:var(--gold);}
+.main{display:flex;flex:1;}
+.lp{width:310px;min-width:250px;border-right:1px solid rgba(201,168,76,.1);padding:24px 22px;background:rgba(18,15,11,.65);display:flex;flex-direction:column;gap:18px;}
+.rp{flex:1;padding:24px 28px;display:flex;flex-direction:column;gap:18px;min-width:0;}
+
+/* CARD */
+.card{background:rgba(22,18,13,.88);border:1px solid rgba(201,168,76,.13);border-radius:12px;padding:18px;position:relative;}
+.card::before{content:'';position:absolute;top:0;left:12px;right:12px;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.35),transparent);}
+.ct{font-family:'Playfair Display',serif;font-size:.88rem;color:var(--gold);margin-bottom:11px;letter-spacing:.04em;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 18px;border-radius:8px;cursor:pointer;font-family:'DM Mono',monospace;font-size:.75rem;letter-spacing:.09em;border:none;transition:all .2s;user-select:none;}
+.btn-g{background:rgba(255,255,255,.04);color:var(--dim);border:1px solid rgba(255,255,255,.07);}
+.btn-g:hover{background:rgba(255,255,255,.09);color:var(--text);}
+.btn-o{background:transparent;color:var(--gold);border:1px solid rgba(201,168,76,.3);}
+.btn-o:hover{background:rgba(201,168,76,.08);border-color:var(--gold);}
+
+/* PLAY BUTTON */
+.pbtn{width:66px;height:66px;border-radius:50%;cursor:pointer;background:linear-gradient(135deg,var(--gold),var(--gold-l));border:none;display:flex;align-items:center;justify-content:center;transition:all .26s;flex-shrink:0;box-shadow:0 0 0 0 rgba(201,168,76,.35);}
+.pbtn:hover{transform:scale(1.07);box-shadow:0 0 0 10px rgba(201,168,76,.1);}
+.pbtn.spin{animation:pg 1s ease-in-out infinite;}
+@keyframes pg{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,.4);}50%{box-shadow:0 0 0 18px rgba(201,168,76,0);}}
+.pico{color:var(--dark);font-size:1.45rem;margin-left:4px;}
+
+/* KEYBOARD WRAP — key fix: overflow-x scroll, no clip */
+.kw{
+  overflow-x:auto;
+  overflow-y:visible;
+  padding-bottom:8px;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:var(--gold-d) transparent;
+  /* prevent card from clipping */
+  margin:-2px -2px 0;
+  padding-left:2px;
+  padding-right:2px;
+}
+.kw::-webkit-scrollbar{height:4px;}
+.kw::-webkit-scrollbar-track{background:rgba(255,255,255,.03);}
+.kw::-webkit-scrollbar-thumb{background:var(--gold-d);border-radius:4px;}
+
+/* KEYBOARD */
+.kb{position:relative;display:flex;user-select:none;width:max-content;}
+.wk{background:linear-gradient(180deg,#eee8de 0%,var(--wkey) 100%);border:1px solid rgba(0,0,0,.2);border-radius:0 0 7px 7px;cursor:pointer;position:relative;z-index:1;flex-shrink:0;transition:background .06s;box-shadow:0 4px 5px rgba(0,0,0,.4),inset 0 -2px 3px rgba(0,0,0,.07);}
+.wk:hover{background:linear-gradient(180deg,#fff 0%,#f1ece3 100%);}
+.wk.act{background:linear-gradient(180deg,#ddd0b0 0%,#b89a58 100%)!important;box-shadow:0 1px 3px rgba(0,0,0,.5)!important;}
+.wk.hl{background:linear-gradient(180deg,#b8f0d0 0%,#72c898 100%)!important;}
+.klb{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-family:'DM Mono',monospace;font-size:.52rem;color:rgba(0,0,0,.3);pointer-events:none;}
+.bk{background:linear-gradient(180deg,#282018 0%,var(--bkey) 100%);border-radius:0 0 5px 5px;cursor:pointer;position:absolute;z-index:2;top:0;box-shadow:2px 4px 8px rgba(0,0,0,.7),inset 0 -2px 3px rgba(255,255,255,.04);transition:background .06s;}
+.bk:hover{background:linear-gradient(180deg,#3a3028 0%,#242018 100%);}
+.bk.act{background:linear-gradient(180deg,#c9a84c 0%,#7a6230 100%)!important;}
+.bk.hl{background:linear-gradient(180deg,#4caf82 0%,#2a7a50 100%)!important;}
+
+/* QUIZ UI */
+.qa{display:flex;align-items:center;justify-content:center;gap:18px;padding:18px 0;}
+.og{display:grid;grid-template-columns:repeat(auto-fill,minmax(124px,1fr));gap:8px;}
+.ob{padding:10px 8px;border-radius:8px;cursor:pointer;text-align:center;background:rgba(22,18,13,.92);border:1px solid rgba(201,168,76,.14);font-family:'DM Mono',monospace;font-size:.73rem;letter-spacing:.06em;color:var(--text);transition:all .17s;user-select:none;}
+.ob:hover:not([disabled]){border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,.06);}
+.ob.ok{background:rgba(76,175,130,.14);border-color:var(--ok);color:var(--ok);}
+.ob.fail{background:rgba(201,76,76,.14);border-color:var(--bad);color:var(--bad);}
+.ob.show{background:rgba(76,175,130,.07);border-color:rgba(76,175,130,.4);color:var(--ok);}
+.ob[disabled]{cursor:not-allowed;}
+.fb{height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:.92rem;font-family:'Playfair Display',serif;transition:all .3s;background:rgba(22,18,13,.65);border:1px solid rgba(201,168,76,.1);color:var(--dim);}
+.fb.ok{background:rgba(76,175,130,.09);border-color:rgba(76,175,130,.35);color:var(--ok);}
+.fb.fail{background:rgba(201,76,76,.09);border-color:rgba(201,76,76,.35);color:var(--bad);}
+.nb{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;border:2px solid rgba(201,168,76,.28);color:var(--gold);background:rgba(201,168,76,.06);}
+.mtabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;}
+.mt{padding:5px 12px;border-radius:20px;font-size:.7rem;font-family:'DM Mono',monospace;cursor:pointer;letter-spacing:.06em;background:rgba(255,255,255,.04);color:var(--dim);border:1px solid rgba(255,255,255,.07);transition:all .18s;}
+.mt:hover{color:var(--text);}
+.mt.on{background:rgba(201,168,76,.1);color:var(--gold);border-color:rgba(201,168,76,.26);}
+.sh{font-family:'Playfair Display',serif;font-style:italic;font-size:1rem;color:var(--dim);margin-bottom:3px;}
+
+/* STATS */
+.sr{display:flex;gap:9px;}
+.sb{flex:1;background:rgba(22,18,13,.88);border:1px solid rgba(201,168,76,.1);border-radius:10px;padding:12px 8px;text-align:center;}
+.sv{font-family:'Playfair Display',serif;font-size:1.45rem;color:var(--gold);}
+.sl{font-size:.6rem;letter-spacing:.14em;color:var(--dim);font-family:'DM Mono',monospace;margin-top:1px;}
+.pw{background:rgba(255,255,255,.06);border-radius:4px;height:5px;overflow:hidden;}
+.pf{height:100%;background:linear-gradient(90deg,var(--gold-d),var(--gold));border-radius:4px;transition:width .4s ease;}
+.deg{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;}
+.dg{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:.62rem;background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.12);color:var(--dim);}
+.dg.r{background:rgba(201,168,76,.17);border-color:var(--gold);color:var(--gold);}
+
+/* TOAST */
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:rgba(22,18,13,.97);border:1px solid rgba(201,168,76,.26);padding:10px 20px;border-radius:40px;font-family:'DM Mono',monospace;font-size:.78rem;color:var(--gold);opacity:0;transition:opacity .3s;z-index:100;pointer-events:none;white-space:nowrap;}
+.toast.on{opacity:1;}
+
+@keyframes fu{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.fi{animation:fu .32s ease both;}
+
+@media(max-width:750px){
+  .main{flex-direction:column;}
+  .lp{width:100%;border-right:none;border-bottom:1px solid rgba(201,168,76,.1);}
+  header{padding:15px 16px;}
+  .stages{padding:0 12px;}
+  .rp{padding:16px 14px;}
+}
+</style>
+</head>
+<body>
+
+<svg class="bg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="g1" cx="18%" cy="28%" r="55%"><stop offset="0%" stop-color="#2a1e08"/><stop offset="100%" stop-color="#0d0b08"/></radialGradient>
+    <radialGradient id="g2" cx="82%" cy="72%" r="48%"><stop offset="0%" stop-color="#1a1208"/><stop offset="100%" stop-color="#0d0b08" stop-opacity="0"/></radialGradient>
+    <filter id="bl"><feGaussianBlur stdDeviation="45"/></filter>
+  </defs>
+  <rect width="1440" height="900" fill="url(#g1)"/>
+  <rect width="1440" height="900" fill="url(#g2)"/>
+  <circle cx="180" cy="140" r="280" fill="#c9a84c" opacity=".045" filter="url(#bl)"/>
+  <circle cx="1280" cy="720" r="240" fill="#6b4cf6" opacity=".03" filter="url(#bl)"/>
+  <g stroke="#c9a84c" stroke-width=".5" opacity=".07" fill="none">
+    <path d="M720,0 L820,100 L720,200 L620,100Z"/>
+    <path d="M720,0 L950,230 L720,460 L490,230Z"/>
+    <circle cx="720" cy="450" r="190"/><circle cx="720" cy="450" r="290"/>
+    <line x1="0" y1="0" x2="380" y2="380"/><line x1="1440" y1="0" x2="1060" y2="380"/>
+  </g>
+  <g stroke="#c9a84c" stroke-width=".5" opacity=".04">
+    <line x1="0" y1="824" x2="1440" y2="824"/><line x1="0" y1="838" x2="1440" y2="838"/>
+    <line x1="0" y1="852" x2="1440" y2="852"/><line x1="0" y1="866" x2="1440" y2="866"/>
+  </g>
+  <g fill="#c9a84c" opacity=".032" font-family="serif" font-size="88">
+    <text x="40" y="480">♩</text><text x="1310" y="280">♪</text>
+    <text x="80" y="790">♫</text><text x="660" y="870">𝄞</text>
+  </g>
+</svg>
+<div class="grain"></div>
+
+<div class="app">
+  <header>
+    <div>
+      <div class="logo">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="14.5" stroke="#c9a84c" stroke-width="1.4"/>
+          <path d="M10 22V12l12-2v8" stroke="#c9a84c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="9" cy="23" r="2.8" fill="#c9a84c" opacity=".85"/>
+          <circle cx="21" cy="19" r="2.8" fill="#c9a84c" opacity=".85"/>
+        </svg>
+        SonicEar
+      </div>
+      <div class="logo-sub">LUYỆN CẢM ÂM · EAR TRAINING</div>
+    </div>
+    <div class="badge">🔥 <span id="sStreak">0</span> streak &nbsp;|&nbsp; <span id="sScore">0</span> điểm</div>
+  </header>
+
+  <div class="stages">
+    <div class="tab on" id="tab-interval" onclick="go('interval')"><span class="tnum">1</span>QUÃNG NHẠC</div>
+    <div class="tab" id="tab-chord"    onclick="go('chord')"   ><span class="tnum">2</span>HỢP ÂM</div>
+    <div class="tab" id="tab-scale"    onclick="go('scale')"   ><span class="tnum">3</span>ĐIỆU THỨC</div>
+    <div class="tab" id="tab-note"     onclick="go('note')"    ><span class="tnum">4</span>NỐT ĐƠN</div>
+    <div class="tab" id="tab-piano"    onclick="go('piano')"   ><span class="tnum">★</span>ĐÀN TỰ DO</div>
+  </div>
+
+  <div class="main">
+    <!-- LEFT -->
+    <div class="lp">
+      <div>
+        <div class="sh" style="margin-bottom:9px;">Tiến độ hôm nay</div>
+        <div class="sr">
+          <div class="sb"><div class="sv" id="sOk">0</div><div class="sl">ĐÚNG</div></div>
+          <div class="sb"><div class="sv" id="sBad">0</div><div class="sl">SAI</div></div>
+          <div class="sb"><div class="sv" id="sAcc">—</div><div class="sl">CHÍNH XÁC</div></div>
+        </div>
+        <div style="margin-top:9px;">
+          <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--dim);font-family:'DM Mono',monospace;margin-bottom:4px;">
+            <span>Level <span id="sLv">1</span></span><span id="sXP">0 / 100 XP</span>
+          </div>
+          <div class="pw"><div class="pf" id="sBar" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Lý thuyết</div>
+        <div id="info" style="font-size:.84rem;line-height:1.75;color:var(--dim);">
+          Chọn một bài tập để bắt đầu.<br><br>Luyện 15 phút mỗi ngày — sau 30 ngày sẽ nghe được gam và hợp âm rõ ràng.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Bàn phím tham chiếu</div>
+        <!-- 2 octave mini keyboard, scrollable -->
+        <div class="kw"><div class="kb" id="miniKb"></div></div>
+        <div style="margin-top:10px;display:flex;gap:6px;">
+          <button class="btn btn-g" style="flex:1;font-size:.65rem;" onclick="demoScale('major')">▶ Major</button>
+          <button class="btn btn-g" style="flex:1;font-size:.65rem;" onclick="demoScale('minor')">▶ Minor</button>
+          <button class="btn btn-g" style="flex:1;font-size:.65rem;" onclick="demoScale('blues')">▶ Blues</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="rp" id="rp"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════
+// AUDIO ENGINE — Pure Web Audio API
+// ═══════════════════════════════════════════════════
+var AC = null;
+var masterGain, compressor, dryGain, reverbNode, reverbGain;
+var voices = {}; // noteStr -> voice
+
+function getAC() {
+  if (!AC) {
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    buildChain();
+  }
+  if (AC.state === 'suspended') { AC.resume(); }
+  return AC;
+}
+
+function buildChain() {
+  masterGain = AC.createGain();
+  masterGain.gain.value = 0.8;
+  masterGain.connect(AC.destination);
+
+  compressor = AC.createDynamicsCompressor();
+  compressor.threshold.value = -14;
+  compressor.knee.value = 8;
+  compressor.ratio.value = 4;
+  compressor.attack.value = 0.003;
+  compressor.release.value = 0.22;
+  compressor.connect(masterGain);
+
+  dryGain = AC.createGain();
+  dryGain.gain.value = 0.74;
+  dryGain.connect(compressor);
+
+  reverbGain = AC.createGain();
+  reverbGain.gain.value = 0.26;
+  reverbGain.connect(compressor);
+
+  var sr = AC.sampleRate;
+  var len = Math.floor(sr * 2.6);
+  var buf = AC.createBuffer(2, len, sr);
+  for (var c = 0; c < 2; c++) {
+    var ch = buf.getChannelData(c);
+    for (var i = 0; i < len; i++) {
+      ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+    }
+  }
+  reverbNode = AC.createConvolver();
+  reverbNode.buffer = buf;
+  reverbNode.connect(reverbGain);
+}
+
+var NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+var NOTE_DISP  = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+
+function noteHz(name, octave) {
+  var idx  = NOTE_NAMES.indexOf(name);
+  var midi = (octave + 1) * 12 + idx;
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+function startVoice(ns, vel) {
+  if (!AC) return;
+  if (voices[ns]) stopVoice(ns, true);
+  var parts = /^([A-G]#?)(\d)$/.exec(ns);
+  if (!parts) return;
+  var hz  = noteHz(parts[1], parseInt(parts[2]));
+  var now = AC.currentTime;
+
+  var filt = AC.createBiquadFilter();
+  filt.type = 'lowpass';
+  filt.frequency.value = Math.min(6000, 800 + hz * 3.5);
+  filt.Q.value = 0.8;
+
+  var env = AC.createGain();
+  env.gain.setValueAtTime(0, now);
+  env.gain.linearRampToValueAtTime(vel * 0.88, now + 0.003);
+  env.gain.exponentialRampToValueAtTime(vel * 0.18, now + 0.7);
+  env.connect(filt);
+  filt.connect(dryGain);
+  filt.connect(reverbNode);
+
+  function osc(type, freq, gain) {
+    var o = AC.createOscillator();
+    var g = AC.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.value = gain;
+    o.connect(g); g.connect(env);
+    o.start(now);
+    return o;
+  }
+
+  var oscs = [
+    osc('triangle', hz,        0.55),
+    osc('sawtooth', hz * 1.004, 0.22),
+    osc('sine',     hz * 0.5,  0.18),
+    osc('sine',     hz * 2,    0.07)
+  ];
+
+  voices[ns] = { oscs: oscs, env: env, filt: filt };
+}
+
+function stopVoice(ns, immediate) {
+  var v = voices[ns];
+  if (!v) return;
+  delete voices[ns];
+  var ac = AC;
+  var now = ac.currentTime;
+  var rel = immediate ? 0.04 : 1.5;
+  v.env.gain.cancelScheduledValues(now);
+  v.env.gain.setValueAtTime(v.env.gain.value, now);
+  v.env.gain.exponentialRampToValueAtTime(0.0001, now + rel);
+  setTimeout(function() {
+    v.oscs.forEach(function(o) { try { o.stop(); o.disconnect(); } catch(e){} });
+    try { v.env.disconnect(); v.filt.disconnect(); } catch(e){}
+  }, (rel + 0.1) * 1000);
+}
+
+function stopAll() {
+  Object.keys(voices).forEach(function(ns) { stopVoice(ns, true); });
+}
+
+// Play a note for ear-training (auto-release)
+function playNote(ns, dur, vel, delay) {
+  dur   = dur   || 1.8;
+  vel   = vel   || 0.78;
+  delay = delay || 0;
+  setTimeout(function() {
+    getAC();
+    startVoice(ns, vel);
+    setTimeout(function() { stopVoice(ns, false); }, dur * 1000);
+  }, delay * 1000);
+}
+
+document.addEventListener('mouseup',  stopAll);
+document.addEventListener('touchend', stopAll);
+document.addEventListener('visibilitychange', function() { if (document.hidden) stopAll(); });
+
+// ═══════════════════════════════════════════════════
+// MUSIC THEORY
+// ═══════════════════════════════════════════════════
+var INTERVALS = [
+  {s:0,  abbr:'P1', vn:'Đồng âm'},
+  {s:1,  abbr:'m2', vn:'Quãng 2 thứ'},
+  {s:2,  abbr:'M2', vn:'Quãng 2 trưởng'},
+  {s:3,  abbr:'m3', vn:'Quãng 3 thứ'},
+  {s:4,  abbr:'M3', vn:'Quãng 3 trưởng'},
+  {s:5,  abbr:'P4', vn:'Quãng 4 đúng'},
+  {s:6,  abbr:'TT', vn:'Tritone'},
+  {s:7,  abbr:'P5', vn:'Quãng 5 đúng'},
+  {s:8,  abbr:'m6', vn:'Quãng 6 thứ'},
+  {s:9,  abbr:'M6', vn:'Quãng 6 trưởng'},
+  {s:10, abbr:'m7', vn:'Quãng 7 thứ'},
+  {s:11, abbr:'M7', vn:'Quãng 7 trưởng'},
+  {s:12, abbr:'P8', vn:'Quãng 8 (Octave)'}
+];
+
+var CHORDS = {
+  major: {name:'Major',      vn:'Trưởng',      sem:[0,4,7]},
+  minor: {name:'Minor',      vn:'Thứ',         sem:[0,3,7]},
+  dom7:  {name:'Dom 7th',    vn:'Át thất',     sem:[0,4,7,10]},
+  maj7:  {name:'Major 7th',  vn:'Trưởng thất', sem:[0,4,7,11]},
+  min7:  {name:'Minor 7th',  vn:'Thứ thất',    sem:[0,3,7,10]},
+  dim:   {name:'Diminished', vn:'Giảm',        sem:[0,3,6]},
+  aug:   {name:'Augmented',  vn:'Tăng',        sem:[0,4,8]},
+  sus4:  {name:'Sus4',       vn:'Sus4',        sem:[0,5,7]}
+};
+
+var SCALES = {
+  major:      {name:'Major',          vn:'Trưởng (Ionian)',  steps:[2,2,1,2,2,2,1]},
+  minor:      {name:'Natural Minor',  vn:'Thứ tự nhiên',     steps:[2,1,2,2,1,2,2]},
+  harmMinor:  {name:'Harmonic Minor', vn:'Thứ hòa âm',       steps:[2,1,2,2,1,3,1]},
+  blues:      {name:'Blues',          vn:'Blues',            steps:[3,2,1,1,3,2]},
+  pentatonic: {name:'Pentatonic Maj', vn:'Ngũ cung Trưởng',  steps:[2,2,3,2,3]},
+  dorian:     {name:'Dorian',         vn:'Dorian',           steps:[2,1,2,2,2,1,2]}
+};
+
+function shift(rootIdx, semitones, rootOct) {
+  var i = rootIdx + semitones, o = rootOct;
+  while (i >= 12) { i -= 12; o++; }
+  return NOTE_NAMES[i] + o;
+}
+
+function scaleNotes(ri, steps, oct) {
+  oct = oct || 4;
+  var out = [NOTE_NAMES[ri] + oct];
+  var cur = ri, o = oct;
+  steps.forEach(function(s) {
+    cur += s;
+    if (cur >= 12) { cur -= 12; o++; }
+    out.push(NOTE_NAMES[cur] + o);
+  });
+  return out;
+}
+
+function shuffle(arr) { return arr.slice().sort(function() { return Math.random() - .5; }); }
+function pick(arr)    { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+var ST = {
+  ok:0, bad:0, streak:0, score:0, xp:0, lv:1,
+  answered:false, ivMode:'basic', chMode:'basic', scMode:'basic', q:null
+};
+
+(function() {
+  try {
+    var d = JSON.parse(localStorage.getItem('se4') || '{}');
+    ST.ok=d.ok||0; ST.bad=d.bad||0; ST.score=d.s||0;
+    ST.xp=d.x||0; ST.lv=d.l||1; ST.streak=d.st||0;
+  } catch(e) {}
+})();
+
+function save() {
+  try { localStorage.setItem('se4', JSON.stringify({ok:ST.ok,bad:ST.bad,s:ST.score,x:ST.xp,l:ST.lv,st:ST.streak})); } catch(e) {}
+}
+
+function updStats() {
+  document.getElementById('sOk').textContent    = ST.ok;
+  document.getElementById('sBad').textContent   = ST.bad;
+  document.getElementById('sStreak').textContent = ST.streak;
+  document.getElementById('sScore').textContent  = ST.score;
+  document.getElementById('sLv').textContent     = ST.lv;
+  var tot = ST.ok + ST.bad;
+  document.getElementById('sAcc').textContent = tot ? Math.round(ST.ok / tot * 100) + '%' : '—';
+  var need = ST.lv * 100;
+  document.getElementById('sXP').textContent  = ST.xp + ' / ' + need + ' XP';
+  document.getElementById('sBar').style.width = Math.min(100, ST.xp / need * 100) + '%';
+}
+
+function gainXP(amt) {
+  ST.xp += amt;
+  var need = ST.lv * 100;
+  if (ST.xp >= need) { ST.xp -= need; ST.lv++; toast('🎉 Level ' + ST.lv + '! Xuất sắc!', 3000); }
+}
+
+function correct(xp) {
+  xp = xp || 12;
+  ST.ok++; ST.streak++; ST.score += xp + (ST.streak > 2 ? 5 : 0);
+  gainXP(xp); updStats(); save();
+}
+function wrong() { ST.bad++; ST.streak = 0; updStats(); save(); }
+
+function toast(msg, ms) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  setTimeout(function() { t.classList.remove('on'); }, ms || 2200);
+}
+
+// ═══════════════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════════════
+var IS_BLACK = [false,true,false,true,false,false,true,false,true,false,true,false];
+
+function buildKb(id, startOct, numOct, cb, small) {
+  var cont = document.getElementById(id);
+  if (!cont) return;
+  cont.innerHTML = '';
+  var wW = small ? 32 : 40;
+  var kH = small ? 74 : 120;
+  var bW = small ? 20 : 25;
+  var bH = small ? 46 : 74;
+  cont.style.height = kH + 'px';
+
+  var all = [];
+  for (var oct = startOct; oct < startOct + numOct; oct++) {
+    for (var s = 0; s < 12; s++) {
+      all.push({name: NOTE_NAMES[s], octave: oct, s: s, black: IS_BLACK[s]});
+    }
+  }
+  var whites = all.filter(function(n) { return !n.black; });
+
+  whites.forEach(function(n) {
+    var d = document.createElement('div');
+    d.className = 'wk';
+    d.style.width  = wW + 'px';
+    d.style.height = kH + 'px';
+    var ns = n.name + n.octave;
+    d.dataset.note = ns;
+    if (n.name === 'C') {
+      var lbl = document.createElement('div');
+      lbl.className = 'klb';
+      lbl.textContent = 'C' + n.octave;
+      d.appendChild(lbl);
+    }
+    addKeyEvents(d, ns, 0.8, cb);
+    cont.appendChild(d);
+  });
+
+  all.filter(function(n) { return n.black; }).forEach(function(n) {
+    var lw = whites.filter(function(w) {
+      return (w.octave < n.octave) || (w.octave === n.octave && w.s < n.s);
+    });
+    if (!lw.length) return;
+    var left = (lw.length - 1) * wW + wW - bW / 2;
+    var d = document.createElement('div');
+    d.className = 'bk';
+    d.style.width  = bW + 'px';
+    d.style.height = bH + 'px';
+    d.style.left   = left + 'px';
+    var ns = n.name + n.octave;
+    d.dataset.note = ns;
+    addKeyEvents(d, ns, 0.85, cb);
+    cont.appendChild(d);
+  });
+}
+
+function addKeyEvents(el, ns, vel, cb) {
+  el.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    getAC();
+    startVoice(ns, vel);
+    el.classList.add('act');
+    if (cb) cb(ns);
+  });
+  el.addEventListener('mouseup', function() {
+    stopVoice(ns, false);
+    setTimeout(function() { el.classList.remove('act'); }, 500);
+  });
+  el.addEventListener('mouseleave', function() {
+    stopVoice(ns, false);
+    setTimeout(function() { el.classList.remove('act'); }, 500);
+  });
+  el.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    getAC();
+    startVoice(ns, vel);
+    el.classList.add('act');
+    if (cb) cb(ns);
+  }, {passive: false});
+  el.addEventListener('touchend', function() {
+    stopVoice(ns, false);
+    setTimeout(function() { el.classList.remove('act'); }, 500);
+  });
+}
+
+function hl(id, noteStrs) {
+  var cont = document.getElementById(id);
+  if (!cont) return;
+  cont.querySelectorAll('.wk,.bk').forEach(function(k) { k.classList.remove('hl'); });
+  (noteStrs || []).forEach(function(ns) {
+    var el = cont.querySelector('[data-note="' + ns + '"]');
+    if (el) el.classList.add('hl');
+  });
+}
+
+function buildMini() {
+  buildKb('miniKb', 3, 2, null, true);
+}
+
+function demoScale(type) {
+  getAC();
+  var ns = scaleNotes(0, SCALES[type].steps, 4);
+  ns.forEach(function(n, i) { playNote(n, 0.85, 0.7, i * 0.2); });
+  hl('miniKb', ns);
+  setTimeout(function() { hl('miniKb', []); }, ns.length * 200 + 800);
+}
+
+// ═══════════════════════════════════════════════════
+// HELPERS: next-btn HTML
+// ═══════════════════════════════════════════════════
+function nextBtn(fn) {
+  return ' &nbsp;<span onclick="' + fn + '()" style="cursor:pointer;opacity:.72;text-decoration:underline;font-size:.88rem;">Câu tiếp →</span>';
+}
+
+function setInfo(html) {
+  document.getElementById('info').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════
+// KEYBOARD CARD HTML (reusable for each module)
+// ═══════════════════════════════════════════════════
+function kbCard(id) {
+  return '<div class="card" style="margin-top:0;">'
+       + '<div class="ct">Bàn phím — Oct 3 &amp; 4</div>'
+       + '<div class="kw"><div class="kb" id="' + id + '"></div></div>'
+       + '</div>';
+}
+
+// ═══════════════════════════════════════════════════
+// ① INTERVAL TRAINER
+// ═══════════════════════════════════════════════════
+var ivQ = {};
+
+function ivPool() {
+  if (ST.ivMode === 'basic')  return INTERVALS.filter(function(x) { return [2,4,5,7,12].indexOf(x.s) >= 0; });
+  if (ST.ivMode === 'medium') return INTERVALS.filter(function(x) { return x.s <= 9; });
+  return INTERVALS;
+}
+
+function newIV() {
+  ST.answered = false;
+  var pool = ivPool();
+  var iv = pick(pool);
+  var ri = Math.floor(Math.random() * 9);
+  var n1 = NOTE_NAMES[ri] + '4';
+  var n2 = shift(ri, iv.s, 4);
+  ivQ = {iv:iv, n1:n1, n2:n2};
+
+  var opts = shuffle(pool.filter(function(x){return x.s!==iv.s;})).slice(0,5).concat([iv]);
+  opts = shuffle(opts);
+
+  var html = '<div class="fi">'
+    + '<div style="margin-bottom:13px;"><div class="sh">Nhận diện Quãng</div>'
+    + '<div class="mtabs">'
+    + mtab('basic',  'Cơ bản',    'ST.ivMode',  'newIV')
+    + mtab('medium', 'Trung cấp', 'ST.ivMode',  'newIV')
+    + mtab('all',    'Tất cả 13', 'ST.ivMode',  'newIV')
+    + '</div></div>'
+    + '<div class="card">'
+    + '<div class="qa">'
+    + '<button class="pbtn" id="pb" onclick="playIV()"><span class="pico">▶</span></button>'
+    + '<div style="text-align:center;">'
+    + '<div style="display:flex;align-items:center;gap:12px;justify-content:center;" id="nd">'
+    + '<div class="nb">?</div><div style="color:var(--dim);">→</div><div class="nb">?</div></div>'
+    + '<div style="font-size:.72rem;color:var(--dim);font-family:\'DM Mono\',monospace;margin-top:9px;">Space = phát lại &nbsp;·&nbsp; 1–6 = đáp án</div>'
+    + '</div></div>'
+    + '<div class="og" id="og">'
+    + opts.map(function(o) {
+        return '<div class="ob" data-s="'+o.s+'" onclick="ansIV('+o.s+')">'
+             + '<div style="font-size:.88rem;color:var(--gold-l)">'+o.abbr+'</div>'
+             + '<div style="font-size:.68rem;margin-top:3px;">'+o.vn+'</div></div>';
+      }).join('')
+    + '</div></div>'
+    + '<div class="fb" id="fb">Nhấn ▶ để nghe, rồi chọn đáp án</div>'
+    + kbCard('qk')
+    + '</div>';
+
+  document.getElementById('rp').innerHTML = html;
+  buildKb('qk', 3, 2, null, false);
+  setInfo('<b style="color:var(--gold)">Quãng nhạc</b> = khoảng cách cao độ.<br><br>'
+    + '<b>P5</b> → "Star Wars"<br><b>P4</b> → "Here Comes the Bride"<br>'
+    + '<b>M3</b> → "When the Saints"<br><b>m3</b> → "Smoke on the Water"<br>'
+    + '<b>P8</b> → "Somewhere Over the Rainbow"');
+  setTimeout(playIV, 480);
+}
+
+function playIV() {
+  getAC();
+  var b = document.getElementById('pb');
+  if (b) { b.classList.add('spin'); setTimeout(function(){b.classList.remove('spin');}, 1400); }
+  playNote(ivQ.n1, 1.0, 0.8, 0);
+  playNote(ivQ.n2, 1.0, 0.8, 0.55);
+}
+
+function ansIV(s) {
+  if (ST.answered) return;
+  ST.answered = true;
+  var ok = s === ivQ.iv.s;
+  document.querySelectorAll('#og .ob').forEach(function(b) {
+    b.setAttribute('disabled', '');
+    if (parseInt(b.dataset.s) === ivQ.iv.s) b.classList.add('show');
+  });
+  var clicked = document.querySelector('#og .ob[data-s="'+s+'"]');
+  if (clicked) clicked.classList.add(ok ? 'ok' : 'fail');
+  var fb = document.getElementById('fb');
+  if (ok) {
+    fb.className = 'fb ok';
+    fb.innerHTML = '✓ Đúng! <b>' + ivQ.iv.vn + '</b>' + nextBtn('newIV');
+    correct(12);
+    hl('qk', [ivQ.n1, ivQ.n2]);
+    var nd = document.getElementById('nd');
+    if (nd) nd.innerHTML = '<div class="nb">'+NOTE_DISP[NOTE_NAMES.indexOf(ivQ.n1.slice(0,-1))]+'</div>'
+      + '<div style="color:var(--gold);font-size:.78rem;font-family:\'DM Mono\',monospace;">'+ivQ.iv.abbr+'</div>'
+      + '<div class="nb">'+NOTE_DISP[NOTE_NAMES.indexOf(ivQ.n2.replace(/\d/,''))]+'</div>';
+  } else {
+    fb.className = 'fb fail';
+    fb.innerHTML = '✗ Sai. Đáp án: <b>' + ivQ.iv.vn + '</b>' + nextBtn('newIV');
+    wrong();
+    hl('qk', [ivQ.n1, ivQ.n2]);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// ② CHORD TRAINER
+// ═══════════════════════════════════════════════════
+var chQ = {};
+
+function chPool() {
+  if (ST.chMode === 'basic')  return ['major','minor'];
+  if (ST.chMode === 'triads') return ['major','minor','dim','aug'];
+  return Object.keys(CHORDS);
+}
+
+function newCH() {
+  ST.answered = false;
+  var pool = chPool();
+  var ck = pick(pool);
+  var ch = CHORDS[ck];
+  var ri = Math.floor(Math.random() * 12);
+  var cns = ch.sem.map(function(s) { return shift(ri, s, 4); });
+  chQ = {ck:ck, ch:ch, ri:ri, cns:cns};
+
+  var opts = shuffle(pool.filter(function(k){return k!==ck;})).slice(0, Math.min(5, pool.length-1));
+  opts = shuffle(opts.concat([ck]));
+
+  var html = '<div class="fi">'
+    + '<div style="margin-bottom:13px;"><div class="sh">Nhận diện Hợp âm</div>'
+    + '<div class="mtabs">'
+    + mtab('basic',  'Major/Minor', 'ST.chMode', 'newCH')
+    + mtab('triads', 'Tam âm',     'ST.chMode', 'newCH')
+    + mtab('all',    'Tất cả',     'ST.chMode', 'newCH')
+    + '</div></div>'
+    + '<div class="card">'
+    + '<div class="qa">'
+    + '<button class="pbtn" id="pb" onclick="playCH(false)"><span class="pico">▶</span></button>'
+    + '<div style="flex:1;text-align:center;">'
+    + '<div style="font-family:\'Playfair Display\',serif;font-size:2.3rem;color:rgba(201,168,76,.18);margin-bottom:8px;" id="cr">?</div>'
+    + '<div style="display:flex;gap:7px;justify-content:center;">'
+    + '<button class="btn btn-g" style="font-size:.66rem;padding:6px 11px;" onclick="playCH(false)">🎹 Đồng thời</button>'
+    + '<button class="btn btn-g" style="font-size:.66rem;padding:6px 11px;" onclick="playCH(true)">🎵 Arpeggio</button>'
+    + '</div></div></div>'
+    + '<div class="og" id="og">'
+    + opts.map(function(k) {
+        return '<div class="ob" data-k="'+k+'" onclick="ansCH(\''+k+'\')">'
+             + '<div style="font-size:.85rem;color:var(--gold-l)">'+CHORDS[k].name+'</div>'
+             + '<div style="font-size:.68rem;margin-top:3px;">'+CHORDS[k].vn+'</div></div>';
+      }).join('')
+    + '</div></div>'
+    + '<div class="fb" id="fb">Nghe và chọn loại hợp âm</div>'
+    + kbCard('qk')
+    + '</div>';
+
+  document.getElementById('rp').innerHTML = html;
+  buildKb('qk', 3, 2, null, false);
+  setInfo('<b style="color:var(--gold)">Hợp âm</b> — các nốt vang cùng nhau.<br><br>'
+    + '<b>Major:</b> vui, sáng<br><b>Minor:</b> buồn, trầm<br>'
+    + '<b>Dom7:</b> căng, muốn giải quyết<br><b>Maj7:</b> mơ màng, jazz<br>'
+    + '<b>Dim:</b> u ám, bất an<br><b>Aug:</b> kỳ ảo, mơ hồ');
+  setTimeout(function(){playCH(false);}, 480);
+}
+
+function playCH(arp) {
+  getAC();
+  var b = document.getElementById('pb');
+  var dur = arp ? chQ.cns.length * 0.22 * 1000 + 600 : 1400;
+  if (b) { b.classList.add('spin'); setTimeout(function(){b.classList.remove('spin');}, dur); }
+  if (arp) {
+    chQ.cns.forEach(function(n, i) { playNote(n, 1.2, 0.76, i * 0.22); });
+  } else {
+    chQ.cns.forEach(function(n) { playNote(n, 1.6, 0.72, 0); });
+  }
+}
+
+function ansCH(k) {
+  if (ST.answered) return;
+  ST.answered = true;
+  var ok = k === chQ.ck;
+  document.querySelectorAll('#og .ob').forEach(function(b) {
+    b.setAttribute('disabled', '');
+    if (b.dataset.k === chQ.ck) b.classList.add('show');
+  });
+  var clicked = document.querySelector('#og .ob[data-k="'+k+'"]');
+  if (clicked) clicked.classList.add(ok ? 'ok' : 'fail');
+  var fb = document.getElementById('fb');
+  var rn = NOTE_DISP[chQ.ri];
+  if (ok) {
+    fb.className = 'fb ok';
+    fb.innerHTML = '✓ Đúng! <b>' + rn + ' ' + chQ.ch.name + '</b>' + nextBtn('newCH');
+    correct(15);
+    var cr = document.getElementById('cr'); if (cr) { cr.textContent = rn; cr.style.color = 'var(--gold)'; }
+    hl('qk', chQ.cns);
+  } else {
+    fb.className = 'fb fail';
+    fb.innerHTML = '✗ Sai. Đáp án: <b>' + rn + ' ' + chQ.ch.name + '</b>' + nextBtn('newCH');
+    wrong();
+    var cr2 = document.getElementById('cr'); if (cr2) { cr2.textContent = rn; cr2.style.color = 'var(--bad)'; }
+    hl('qk', chQ.cns);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// ③ SCALE TRAINER
+// ═══════════════════════════════════════════════════
+var scQ = {};
+
+function scPool() {
+  if (ST.scMode === 'basic')  return ['major','minor'];
+  if (ST.scMode === 'medium') return ['major','minor','harmMinor','pentatonic'];
+  return Object.keys(SCALES);
+}
+
+function newSC() {
+  ST.answered = false;
+  var pool = scPool();
+  var sk = pick(pool);
+  var sc = SCALES[sk];
+  var ri = Math.floor(Math.random() * 12);
+  var sns = scaleNotes(ri, sc.steps, 4);
+  scQ = {sk:sk, sc:sc, ri:ri, sns:sns};
+
+  var opts = shuffle(pool.filter(function(k){return k!==sk;})).slice(0,3).concat([sk]);
+  opts = shuffle(opts);
+
+  var html = '<div class="fi">'
+    + '<div style="margin-bottom:13px;"><div class="sh">Nhận diện Điệu thức / Gam</div>'
+    + '<div class="mtabs">'
+    + mtab('basic',  'Cơ bản',    'ST.scMode', 'newSC')
+    + mtab('medium', 'Trung cấp', 'ST.scMode', 'newSC')
+    + mtab('all',    'Nâng cao',  'ST.scMode', 'newSC')
+    + '</div></div>'
+    + '<div class="card">'
+    + '<div class="qa">'
+    + '<button class="pbtn" id="pb" onclick="playSC()"><span class="pico">▶</span></button>'
+    + '<div style="flex:1;text-align:center;">'
+    + '<div class="deg" id="dg">'
+    + ['I','II','III','IV','V','VI','VII'].map(function(d,i){
+        return '<div class="dg'+(i===0?' r':'')+'">' + d + '</div>';
+      }).join('')
+    + '</div>'
+    + '<div style="font-size:.72rem;color:var(--dim);margin-top:8px;font-family:\'DM Mono\',monospace;">Nghe lên và xuống</div>'
+    + '</div></div>'
+    + '<div class="og" id="og">'
+    + opts.map(function(k) {
+        return '<div class="ob" data-k="'+k+'" onclick="ansSC(\''+k+'\')">'
+             + '<div style="font-size:.85rem;color:var(--gold-l)">'+SCALES[k].name+'</div>'
+             + '<div style="font-size:.68rem;margin-top:3px;">'+SCALES[k].vn+'</div></div>';
+      }).join('')
+    + '</div></div>'
+    + '<div class="fb" id="fb">Nghe và chọn điệu thức</div>'
+    + kbCard('qk')
+    + '</div>';
+
+  document.getElementById('rp').innerHTML = html;
+  buildKb('qk', 3, 2, null, false);
+  setInfo('<b style="color:var(--gold)">Điệu thức</b> = công thức khoảng cách nốt.<br><br>'
+    + '<b>Major</b>: W-W-H-W-W-W-H (sáng)<br>'
+    + '<b>Natural Minor</b>: buồn, trầm<br>'
+    + '<b>Harmonic Minor</b>: bí ẩn, Đông phương<br>'
+    + '<b>Blues</b>: cảm xúc, "xé lòng"<br>'
+    + '<b>Pentatonic</b>: 5 nốt, pop/rock');
+  setTimeout(playSC, 480);
+}
+
+function playSC() {
+  getAC();
+  var b = document.getElementById('pb');
+  var n = scQ.sns.length;
+  if (b) { b.classList.add('spin'); setTimeout(function(){b.classList.remove('spin');}, (n*2-1)*220+400); }
+  scQ.sns.forEach(function(ns, i) { playNote(ns, 0.85, 0.72, i * 0.2); });
+  var rev = scQ.sns.slice().reverse().slice(1);
+  rev.forEach(function(ns, i) { playNote(ns, 0.85, 0.68, (n + i) * 0.2); });
+}
+
+function ansSC(k) {
+  if (ST.answered) return;
+  ST.answered = true;
+  var ok = k === scQ.sk;
+  document.querySelectorAll('#og .ob').forEach(function(b) {
+    b.setAttribute('disabled', '');
+    if (b.dataset.k === scQ.sk) b.classList.add('show');
+  });
+  var clicked = document.querySelector('#og .ob[data-k="'+k+'"]');
+  if (clicked) clicked.classList.add(ok ? 'ok' : 'fail');
+  var fb = document.getElementById('fb');
+  var rn = NOTE_DISP[scQ.ri];
+  if (ok) {
+    fb.className = 'fb ok';
+    fb.innerHTML = '✓ Xuất sắc! <b>' + rn + ' ' + scQ.sc.vn + '</b>' + nextBtn('newSC');
+    correct(18);
+    hl('qk', scQ.sns);
+    var dg = document.getElementById('dg');
+    if (dg) dg.innerHTML = scQ.sns.map(function(ns,i){
+      return '<div class="dg'+(i===0?' r':'')+'">' + NOTE_DISP[NOTE_NAMES.indexOf(ns.replace(/\d/,''))] + '</div>';
+    }).join('');
+  } else {
+    fb.className = 'fb fail';
+    fb.innerHTML = '✗ Sai. Đáp án: <b>' + rn + ' ' + scQ.sc.vn + '</b>' + nextBtn('newSC');
+    wrong();
+    hl('qk', scQ.sns);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// ④ NOTE TRAINER
+// ═══════════════════════════════════════════════════
+var ntQ = {};
+
+function newNT() {
+  ST.answered = false;
+  var ni = Math.floor(Math.random() * 12);
+  var ns = NOTE_NAMES[ni] + '4';
+  ntQ = {ni:ni, ns:ns, correct: NOTE_DISP[ni]};
+
+  var opts = shuffle(NOTE_DISP.filter(function(_,i){return i!==ni;})).slice(0,7).concat([NOTE_DISP[ni]]);
+  opts = shuffle(opts);
+
+  var html = '<div class="fi">'
+    + '<div style="margin-bottom:13px;"><div class="sh">Nhận diện Nốt đơn</div>'
+    + '<p style="font-size:.82rem;color:var(--dim);">Nghe một nốt và chọn tên nốt đúng</p></div>'
+    + '<div class="card" style="text-align:center;">'
+    + '<div class="qa" style="justify-content:center;flex-direction:column;gap:12px;">'
+    + '<button class="pbtn" id="pb" onclick="playNT()"><span class="pico">▶</span></button>'
+    + '<div style="font-family:\'Playfair Display\',serif;font-size:4.5rem;color:rgba(201,168,76,.12);line-height:1;" id="nr">?</div>'
+    + '</div>'
+    + '<div class="og" id="og">'
+    + opts.map(function(n) {
+        return '<div class="ob" data-n="'+n+'" onclick="ansNT(\''+n+'\')">'
+             + '<div style="font-size:1.05rem;font-family:\'Playfair Display\',serif;color:var(--gold-l)">'+n+'</div>'
+             + '</div>';
+      }).join('')
+    + '</div></div>'
+    + '<div class="fb" id="fb">Nghe và chọn tên nốt</div>'
+    + kbCard('qk')
+    + '</div>';
+
+  document.getElementById('rp').innerHTML = html;
+  buildKb('qk', 3, 2, null, false);
+  setInfo('<b style="color:var(--gold)">Cảm âm tuyệt đối vs tương đối</b><br><br>'
+    + '<b>Tương đối</b>: nhận nốt dựa trên nốt tham chiếu — thực dụng, học được.<br><br>'
+    + '<b>Tuyệt đối</b>: nghe ra tên nốt ngay — bẩm sinh hoặc luyện rất lâu.<br><br>'
+    + 'Bài này giúp luyện cả hai!');
+  setTimeout(playNT, 420);
+}
+
+function playNT() {
+  getAC();
+  var b = document.getElementById('pb');
+  if (b) { b.classList.add('spin'); setTimeout(function(){b.classList.remove('spin');}, 1200); }
+  playNote(ntQ.ns, 2.0, 0.85, 0);
+}
+
+function ansNT(n) {
+  if (ST.answered) return;
+  ST.answered = true;
+  var ok = n === ntQ.correct;
+  document.querySelectorAll('#og .ob').forEach(function(b) {
+    b.setAttribute('disabled', '');
+    if (b.dataset.n === ntQ.correct) b.classList.add('show');
+  });
+  var clicked = document.querySelector('#og .ob[data-n="'+n+'"]');
+  if (clicked) clicked.classList.add(ok ? 'ok' : 'fail');
+  var nr = document.getElementById('nr');
+  if (nr) { nr.textContent = ntQ.correct; nr.style.color = ok ? 'var(--ok)' : 'var(--bad)'; }
+  var fb = document.getElementById('fb');
+  if (ok) {
+    fb.className = 'fb ok';
+    fb.innerHTML = '✓ Đúng! Nốt <b>' + ntQ.correct + '</b>' + nextBtn('newNT');
+    correct(8); hl('qk', [ntQ.ns]);
+  } else {
+    fb.className = 'fb fail';
+    fb.innerHTML = '✗ Sai. Đây là nốt <b>' + ntQ.correct + '</b>' + nextBtn('newNT');
+    wrong(); hl('qk', [ntQ.ns]);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// ⑤ FREE PIANO
+// ═══════════════════════════════════════════════════
+function newPiano() {
+  setInfo('<b style="color:var(--gold)">Đàn tự do</b><br><br>Nhấn phím để chơi. Scroll ngang để xem thêm phím.<br><br><i>Lắng nghe sự khác biệt giữa Major và Minor!</i>');
+
+  var scBtns = Object.entries(SCALES).map(function(e) {
+    return '<button class="btn btn-g" style="font-size:.66rem;" onclick="fpScale(\''+e[0]+'\')">▶ '+e[1].name+'</button>';
+  }).join('');
+  var chBtns = Object.entries(CHORDS).map(function(e) {
+    return '<button class="btn btn-o" style="font-size:.66rem;" onclick="fpChord(\''+e[0]+'\')">C '+e[1].name+'</button>';
+  }).join('');
+
+  document.getElementById('rp').innerHTML = '<div class="fi">'
+    + '<div style="margin-bottom:13px;"><div class="sh">Piano Tự do</div>'
+    + '<p style="font-size:.82rem;color:var(--dim);">Nhấn phím · Scroll ngang để xem thêm</p></div>'
+    + '<div class="card">'
+    + '<div class="kw"><div class="kb" id="fp"></div></div>'
+    + '<div style="margin-top:12px;">'
+    + '<div style="font-size:.68rem;color:var(--dim);font-family:\'DM Mono\',monospace;margin-bottom:7px;">NGHE GAM</div>'
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap;">' + scBtns + '</div>'
+    + '</div></div>'
+    + '<div class="card">'
+    + '<div class="ct">Hợp âm từ C</div>'
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap;">' + chBtns + '</div>'
+    + '</div></div>';
+
+  buildKb('fp', 3, 3, null, false);
+}
+
+function fpScale(k) {
+  getAC();
+  var ns = scaleNotes(0, SCALES[k].steps, 4);
+  ns.forEach(function(n, i) { playNote(n, 0.85, 0.7, i * 0.2); });
+  hl('fp', ns);
+  setTimeout(function() { hl('fp', []); }, ns.length * 200 + 700);
+}
+
+function fpChord(k) {
+  getAC();
+  var ns = CHORDS[k].sem.map(function(s) { return shift(0, s, 4); });
+  ns.forEach(function(n) { playNote(n, 1.8, 0.72, 0); });
+  hl('fp', ns);
+  setTimeout(function() { hl('fp', []); }, 2200);
+}
+
+// ═══════════════════════════════════════════════════
+// MODULE TABS HELPER
+// ═══════════════════════════════════════════════════
+function mtab(val, label, stateVar, fn) {
+  var isOn = (stateVar === 'ST.ivMode' && ST.ivMode === val)
+          || (stateVar === 'ST.chMode' && ST.chMode === val)
+          || (stateVar === 'ST.scMode' && ST.scMode === val);
+  return '<div class="mt' + (isOn ? ' on' : '') + '" onclick="' + stateVar + '=\'' + val + '\';' + fn + '()">' + label + '</div>';
+}
+
+// ═══════════════════════════════════════════════════
+// ROUTER
+// ═══════════════════════════════════════════════════
+function go(s) {
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('on'); });
+  document.getElementById('tab-' + s).classList.add('on');
+  stopAll();
+  if      (s === 'interval') newIV();
+  else if (s === 'chord')    newCH();
+  else if (s === 'scale')    newSC();
+  else if (s === 'note')     newNT();
+  else if (s === 'piano')    newPiano();
+}
+
+// ═══════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════════
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.code === 'Space' || e.key === ' ') {
+    e.preventDefault();
+    var pb = document.getElementById('pb');
+    if (pb) pb.click();
+  }
+  if (e.key >= '1' && e.key <= '8') {
+    var i = parseInt(e.key) - 1;
+    var opts = document.querySelectorAll('.ob:not([disabled])');
+    if (opts[i]) opts[i].click();
+  }
+});
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
+  updStats();
+  buildMini();
+  newIV();
+});
+</script>
+</body>
+</html>

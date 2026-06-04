@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #c9a84c;
+  --color-gold-light: #e8c96d;
+  --color-gold-dim: #7a6230;
+  --color-dark: #0d0b08;
+  --color-surface: #1a1610;
+  --color-surface2: #231f18;
+  --color-text: #e8dcc8;
+  --color-dim: #8a7d6a;
+  --color-ok: #4caf82;
+  --color-bad: #c94c4c;
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Cormorant Garamond', serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+@layer base {
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--color-dark);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--color-gold-dim); border-radius: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+}
+
+@layer utilities {
+  .font-display { font-family: var(--font-display); }
+  .font-mono    { font-family: var(--font-mono); }
+  .text-gold    { color: var(--color-gold); }
+  .text-gold-light { color: var(--color-gold-light); }
+  .text-dim     { color: var(--color-dim); }
+  .bg-surface   { background: var(--color-surface); }
+  .bg-surface2  { background: var(--color-surface2); }
+  .border-gold  { border-color: rgba(201,168,76,.2); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
