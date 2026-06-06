@@ -73,7 +73,7 @@ export function NoteModule() {
           :<>✗ Sai. Đây là nốt <b>{q.correct}</b><span className="cursor-pointer underline opacity-70 ml-2" onClick={newQ}>Tiếp →</span></>}
       </FeedbackBar>
       <Card><CardTitle>Bàn phím — nhấn để so sánh</CardTitle>
-        <Piano startOctave={3} numOctaves={2} highlighted={answered?[q.ns]:[]} /></Card>
+        <Piano startOctave={3} numOctaves={3} highlighted={answered?[q.ns]:[]} /></Card>
     </div>
   )
 }

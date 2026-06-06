@@ -117,8 +117,8 @@ export function IntervalModule() {
       </FeedbackBar>
 
       <Card>
-        <CardTitle>Bàn phím — Oct 3 &amp; 4</CardTitle>
-        <Piano startOctave={3} numOctaves={2} highlighted={answered ? [q.n1, q.n2] : []} />
+        <CardTitle>Bàn phím — Oct 3–5</CardTitle>
+        <Piano startOctave={3} numOctaves={3} highlighted={answered ? [q.n1, q.n2] : []} />
       </Card>
     </div>
   )

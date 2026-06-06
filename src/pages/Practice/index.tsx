@@ -121,7 +121,7 @@ export function PracticePage() {
 
           <Card>
             <CardTitle>Bàn phím tham chiếu</CardTitle>
-            <Piano startOctave={3} numOctaves={2} small />
+            <Piano startOctave={3} numOctaves={3} small />
             <div className="mt-2.5 flex gap-1.5">
               {['major','minor','blues'].map(t => (
                 <Btn key={t} size="sm" className="flex-1" onClick={() => demoScale(t)}>

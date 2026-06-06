@@ -87,8 +87,8 @@ export function ChordModule() {
           :ok?<>✓ Đúng! <b>{NOTE_DISPLAY[q.ri]} {q.ch.name}</b><span className="cursor-pointer underline opacity-70 ml-2" onClick={()=>newQ()}>Tiếp →</span></>
           :<>✗ Sai. Đáp án: <b>{NOTE_DISPLAY[q.ri]} {q.ch.name}</b><span className="cursor-pointer underline opacity-70 ml-2" onClick={()=>newQ()}>Tiếp →</span></>}
       </FeedbackBar>
-      <Card><CardTitle>Bàn phím — Oct 3 &amp; 4</CardTitle>
-        <Piano startOctave={3} numOctaves={2} highlighted={answered?q.cns:[]} /></Card>
+      <Card><CardTitle>Bàn phím — Oct 3–5</CardTitle>
+        <Piano startOctave={3} numOctaves={3} highlighted={answered?q.cns:[]} /></Card>
     </div>
   )
 }

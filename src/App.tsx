@@ -16,6 +16,9 @@ function Header() {
         </div>
         <div className="font-mono text-[.66rem] tracking-[.2em] text-[#8a7d6a]">LUYỆN CẢM ÂM · EAR TRAINING</div>
       </div>
+      <div className="font-mono text-[.55rem] tracking-[.08em] text-[#8a7d6a]/40 hidden sm:block">
+        {__BUILD_INFO__}
+      </div>
     </header>
   )
 }

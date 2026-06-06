@@ -90,8 +90,8 @@ export function ScaleModule() {
           :ok?<>✓ Xuất sắc! <b>{NOTE_DISPLAY[q.ri]} {q.sc.vn}</b><span className="cursor-pointer underline opacity-70 ml-2" onClick={()=>newQ()}>Tiếp →</span></>
           :<>✗ Sai. Đáp án: <b>{NOTE_DISPLAY[q.ri]} {q.sc.vn}</b><span className="cursor-pointer underline opacity-70 ml-2" onClick={()=>newQ()}>Tiếp →</span></>}
       </FeedbackBar>
-      <Card><CardTitle>Bàn phím — Oct 3 &amp; 4</CardTitle>
-        <Piano startOctave={3} numOctaves={2} highlighted={answered?q.sns:[]} /></Card>
+      <Card><CardTitle>Bàn phím — Oct 3–5</CardTitle>
+        <Piano startOctave={3} numOctaves={3} highlighted={answered?q.sns:[]} /></Card>
     </div>
   )
 }

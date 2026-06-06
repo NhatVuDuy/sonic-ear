@@ -27,33 +27,35 @@ class AudioEngine {
   private buildChain() {
     const ac = this.ac!
     this.masterGain = ac.createGain()
-    this.masterGain.gain.value = 0.8
+    this.masterGain.gain.value = 0.82
     this.masterGain.connect(ac.destination)
 
     this.compressor = ac.createDynamicsCompressor()
-    this.compressor.threshold.value = -14
-    this.compressor.knee.value = 8
-    this.compressor.ratio.value = 4
-    this.compressor.attack.value = 0.003
-    this.compressor.release.value = 0.22
+    this.compressor.threshold.value = -16
+    this.compressor.knee.value = 10
+    this.compressor.ratio.value = 3
+    this.compressor.attack.value = 0.004
+    this.compressor.release.value = 0.28
     this.compressor.connect(this.masterGain)
 
+    // More wet mix for a resonant hall sound
     this.dryGain = ac.createGain()
-    this.dryGain.gain.value = 0.74
+    this.dryGain.gain.value = 0.58
     this.dryGain.connect(this.compressor)
 
     this.reverbGain = ac.createGain()
-    this.reverbGain.gain.value = 0.26
+    this.reverbGain.gain.value = 0.42
     this.reverbGain.connect(this.compressor)
 
-    // Generate reverb impulse response
+    // Longer reverb with a gentler decay tail — sounds like a concert hall
     const sr = ac.sampleRate
-    const len = Math.floor(sr * 2.6)
+    const len = Math.floor(sr * 3.8)
     const buf = ac.createBuffer(2, len, sr)
     for (let c = 0; c < 2; c++) {
       const ch = buf.getChannelData(c)
       for (let i = 0; i < len; i++) {
-        ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2)
+        // Slower decay (1.5 exponent vs old 2.2) → longer, more natural tail
+        ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 1.5)
       }
     }
     this.reverbNode = ac.createConvolver()
@@ -69,15 +71,16 @@ class AudioEngine {
     const hz = noteToHz(name, oct)
     const now = ac.currentTime
 
+    // Wider filter → more harmonics pass through → brighter, more "open" tone
     const filter = ac.createBiquadFilter()
     filter.type = 'lowpass'
-    filter.frequency.value = Math.min(6000, 800 + hz * 3.5)
-    filter.Q.value = 0.8
+    filter.frequency.value = Math.min(8000, 600 + hz * 4.5)
+    filter.Q.value = 0.5
 
     const env = ac.createGain()
     env.gain.setValueAtTime(0, now)
-    env.gain.linearRampToValueAtTime(velocity * 0.88, now + 0.003)
-    env.gain.exponentialRampToValueAtTime(velocity * 0.18, now + 0.7)
+    env.gain.linearRampToValueAtTime(velocity * 0.92, now + 0.002)  // snappy attack
+    env.gain.exponentialRampToValueAtTime(velocity * 0.26, now + 0.9) // slower decay → more sustain
     env.connect(filter)
     filter.connect(this.dryGain)
     filter.connect(this.reverbNode)
@@ -93,11 +96,14 @@ class AudioEngine {
       return o
     }
 
+    // More sine content (pure, bell-like) — less sawtooth (harsh/buzzy)
+    // Adding 3rd harmonic sine for bell character
     const oscs = [
-      makeOsc('triangle', hz,         0.55),
-      makeOsc('sawtooth', hz * 1.004, 0.22),
-      makeOsc('sine',     hz * 0.5,   0.18),
-      makeOsc('sine',     hz * 2,     0.07),
+      makeOsc('triangle', hz,         0.42), // fundamental body
+      makeOsc('sawtooth', hz * 1.003, 0.09), // subtle warmth, much less harsh
+      makeOsc('sine',     hz * 0.5,   0.22), // sub-octave depth
+      makeOsc('sine',     hz * 2,     0.20), // 2nd harmonic shimmer
+      makeOsc('sine',     hz * 3,     0.08), // 3rd harmonic — bell/crystal character
     ]
 
     this.voices.set(ns, { oscs, env, filter })
@@ -109,7 +115,7 @@ class AudioEngine {
     this.voices.delete(ns)
 
     const now = this.ac.currentTime
-    const rel = immediate ? 0.04 : 1.5
+    const rel = immediate ? 0.04 : 2.2  // longer release = more natural sustain
     voice.env.gain.cancelScheduledValues(now)
     voice.env.gain.setValueAtTime(voice.env.gain.value, now)
     voice.env.gain.exponentialRampToValueAtTime(0.0001, now + rel)
