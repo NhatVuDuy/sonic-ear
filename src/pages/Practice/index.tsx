@@ -84,7 +84,7 @@ export function PracticePage() {
           <StatBox value={acc} label="%" />
         </div>
         <div className="w-20 flex-shrink-0">
-          <div className="mb-1 flex justify-between font-mono text-[.58rem] text-[#8a7d6a]">
+          <div className="mb-1 flex justify-between font-mono text-[.58rem] text-[#a89880]">
             <span>Lv.{level}</span><span>{xp}/{need}</span>
           </div>
           <ProgressBar value={xp} max={need} />
@@ -96,14 +96,14 @@ export function PracticePage() {
         {/* Left panel — desktop only */}
         <div className="hidden md:flex w-72 min-w-[240px] flex-col gap-4 border-r border-white/[0.08] bg-[rgba(18,15,11,.65)] p-5">
           <div>
-            <div className="font-display mb-2 italic text-[#8a7d6a]">Tiến độ hôm nay</div>
+            <div className="font-display mb-2 italic text-[#a89880]">Tiến độ hôm nay</div>
             <div className="flex gap-2">
               <StatBox value={correct} label="ĐÚNG" />
               <StatBox value={wrong} label="SAI" />
               <StatBox value={acc} label="CHÍNH XÁC" />
             </div>
             <div className="mt-2.5">
-              <div className="mb-1 flex justify-between font-mono text-[.64rem] text-[#8a7d6a]">
+              <div className="mb-1 flex justify-between font-mono text-[.64rem] text-[#a89880]">
                 <span>Level {level}</span>
                 <span>{xp} / {need} XP</span>
               </div>

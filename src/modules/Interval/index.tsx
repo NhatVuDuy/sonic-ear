@@ -63,7 +63,7 @@ export function IntervalModule() {
   return (
     <div className="flex flex-col gap-4 animate-[fadeUp_.32s_ease_both]">
       <div>
-        <div className="font-display italic text-[1rem] text-[#8a7d6a]">Nhận diện Quãng</div>
+        <div className="font-display italic text-[1rem] text-[#a89880]">Nhận diện Quãng</div>
         <ModuleTabs
           options={[
             { value: 'basic' as Mode,  label: 'Cơ bản' },
@@ -81,10 +81,10 @@ export function IntervalModule() {
           <div className="text-center">
             <div className="flex items-center gap-3 justify-center">
               <NoteBubble>{answered ? NOTE_DISPLAY[NOTE_NAMES.indexOf(q.n1.slice(0,-1) as any)] : '?'}</NoteBubble>
-              <span className="text-[#8a7d6a]">→</span>
+              <span className="text-[#a89880]">→</span>
               <NoteBubble>{answered ? NOTE_DISPLAY[NOTE_NAMES.indexOf(q.n2.replace(/\d/,'') as any)] : '?'}</NoteBubble>
             </div>
-            <p className="mt-2 hidden sm:block font-mono text-[0.7rem] text-[#8a7d6a]">Space = phát lại · 1–{opts.length} = đáp án</p>
+            <p className="mt-2 hidden sm:block font-mono text-[0.7rem] text-[#a89880]">Space = phát lại · 1–{opts.length} = đáp án</p>
           </div>
         </div>
 

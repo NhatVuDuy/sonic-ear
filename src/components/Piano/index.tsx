@@ -70,7 +70,7 @@ export function Piano({
               }}
             >
               {n.name === 'C' && (
-                <span className="pointer-events-none absolute bottom-1.5 left-0 right-0 text-center font-mono text-[0.5rem] text-black/30">
+                <span className="pointer-events-none absolute bottom-1.5 left-0 right-0 text-center font-mono text-[0.58rem] font-semibold text-black/60">
                   C{n.octave}
                 </span>
               )}

@@ -58,7 +58,7 @@ export function ScaleModule() {
   return (
     <div className="flex flex-col gap-4 animate-[fadeUp_.32s_ease_both]">
       <div>
-        <div className="font-display italic text-[1rem] text-[#8a7d6a]">Nhận diện Điệu thức / Gam</div>
+        <div className="font-display italic text-[1rem] text-[#a89880]">Nhận diện Điệu thức / Gam</div>
         <ModuleTabs options={[{value:'basic' as Mode,label:'Cơ bản'},{value:'medium' as Mode,label:'Trung cấp'},{value:'all' as Mode,label:'Nâng cao'}]} value={mode} onChange={m=>{setMode(m);newQ(m)}} />
       </div>
       <Card>
@@ -67,12 +67,12 @@ export function ScaleModule() {
           <div className="flex-1 text-center">
             <div className="flex gap-1.5 flex-wrap justify-center">
               {['I','II','III','IV','V','VI','VII'].map((d,i) => (
-                <div key={d} className={`flex h-8 w-8 items-center justify-center rounded-md border font-mono text-[.62rem] ${i===0?'border-[#c9a84c] bg-[rgba(201,168,76,.17)] text-[#c9a84c]':'border-[rgba(201,168,76,.12)] bg-[rgba(201,168,76,.07)] text-[#8a7d6a]'}`}>
+                <div key={d} className={`flex h-8 w-8 items-center justify-center rounded-md border font-mono text-[.62rem] ${i===0?'border-[#c9a84c] bg-[rgba(201,168,76,.17)] text-[#c9a84c]':'border-[rgba(201,168,76,.12)] bg-[rgba(201,168,76,.07)] text-[#a89880]'}`}>
                   {answered && q.sns[i] ? NOTE_DISPLAY[NOTE_NAMES.indexOf(q.sns[i].replace(/\d/,'') as any)] : d}
                 </div>
               ))}
             </div>
-            <p className="mt-2 font-mono text-[0.7rem] text-[#8a7d6a]">Nghe lên và xuống</p>
+            <p className="mt-2 font-mono text-[0.7rem] text-[#a89880]">Nghe lên và xuống</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2">

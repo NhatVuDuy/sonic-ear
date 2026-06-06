@@ -3,7 +3,7 @@ import { ReactNode } from 'react'
 // ─── Card ────────────────────────────────────────────────
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`relative rounded-xl border border-white/[0.08] bg-[#161310]/90 p-5 ${className}`}>
+    <div className={`relative rounded-xl border border-white/[0.10] bg-[#1e1a14]/90 p-5 ${className}`}>
       <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-[#c9a84c]/30 to-transparent" />
       {children}
     </div>
@@ -55,7 +55,7 @@ export function PlayBtn({ onClick, isPlaying }: { onClick: () => void; isPlaying
 type FbState = 'idle' | 'correct' | 'wrong'
 export function FeedbackBar({ state, children }: { state: FbState; children: ReactNode }) {
   const cls = {
-    idle:    'bg-[rgba(22,18,13,.65)] border-[rgba(201,168,76,.1)] text-[#8a7d6a]',
+    idle:    'bg-[rgba(22,18,13,.65)] border-[rgba(201,168,76,.15)] text-[#b0a28e]',
     correct: 'bg-[rgba(76,175,130,.09)] border-[rgba(76,175,130,.35)] text-[#4caf82]',
     wrong:   'bg-[rgba(201,76,76,.09)] border-[rgba(201,76,76,.35)] text-[#c94c4c]',
   }[state]
@@ -116,7 +116,7 @@ export function StatBox({ value, label }: { value: string | number; label: strin
   return (
     <div className="flex-1 rounded-xl border border-[rgba(201,168,76,.1)] bg-[rgba(22,18,13,.88)] p-3 text-center">
       <div className="font-display text-2xl text-[#c9a84c]">{value}</div>
-      <div className="mt-0.5 font-mono text-[0.6rem] tracking-[.14em] text-[#8a7d6a]">{label}</div>
+      <div className="mt-0.5 font-mono text-[0.65rem] tracking-[.14em] text-[#a89880]">{label}</div>
     </div>
   )
 }

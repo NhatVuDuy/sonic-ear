@@ -2,14 +2,14 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
-import { execSync } from 'child_process'
+import { readFileSync } from 'fs'
 
-const commitHash = execSync('git rev-parse --short HEAD').toString().trim()
-const buildTime = new Date().toISOString().slice(0, 16).replace('T', ' ')
+const { version } = JSON.parse(readFileSync('./package.json', 'utf-8'))
+const buildDate = new Date().toISOString().slice(0, 10)
 
 export default defineConfig({
   define: {
-    __BUILD_INFO__: JSON.stringify(`${commitHash} · ${buildTime} UTC`),
+    __BUILD_INFO__: JSON.stringify(`v${version} · ${buildDate}`),
   },
   plugins: [react(), tailwindcss()],
   resolve: {
