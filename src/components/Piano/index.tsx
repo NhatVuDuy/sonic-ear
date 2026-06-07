@@ -2,6 +2,16 @@ import { useCallback } from 'react'
 import { NOTE_NAMES, IS_BLACK } from '@/theory'
 import { audio } from '@/audio/engine'
 
+// Rainbow gradients for highlighted keys — cycles through hues
+const HL_GRADIENTS = [
+  { white: 'linear-gradient(180deg,#fce7f3 0%,#f472b6 60%,#db2777 100%)', black: 'linear-gradient(180deg,#f9a8d4 0%,#be185d 100%)', glow: 'rgba(244,114,182,0.55)', label: 'rgba(130,0,80,0.9)' },
+  { white: 'linear-gradient(180deg,#ffedd5 0%,#fb923c 60%,#ea580c 100%)', black: 'linear-gradient(180deg,#fed7aa 0%,#c2410c 100%)', glow: 'rgba(251,146,60,0.55)',  label: 'rgba(120,40,0,0.9)' },
+  { white: 'linear-gradient(180deg,#fef9c3 0%,#facc15 60%,#ca8a04 100%)', black: 'linear-gradient(180deg,#fef08a 0%,#a16207 100%)', glow: 'rgba(250,204,21,0.55)',  label: 'rgba(100,70,0,0.9)' },
+  { white: 'linear-gradient(180deg,#d1fae5 0%,#34d399 60%,#059669 100%)', black: 'linear-gradient(180deg,#6ee7b7 0%,#047857 100%)', glow: 'rgba(52,211,153,0.55)',  label: 'rgba(0,80,50,0.9)' },
+  { white: 'linear-gradient(180deg,#dbeafe 0%,#60a5fa 60%,#2563eb 100%)', black: 'linear-gradient(180deg,#93c5fd 0%,#1d4ed8 100%)', glow: 'rgba(96,165,250,0.55)',  label: 'rgba(0,30,120,0.9)' },
+  { white: 'linear-gradient(180deg,#ede9fe 0%,#a78bfa 60%,#7c3aed 100%)', black: 'linear-gradient(180deg,#c4b5fd 0%,#5b21b6 100%)', glow: 'rgba(167,139,250,0.55)', label: 'rgba(60,0,140,0.9)' },
+]
+
 interface PianoProps {
   startOctave?: number
   numOctaves?: number
@@ -46,9 +56,11 @@ export function Piano({
     >
       <div className="relative flex" style={{ width: `${whites.length * wW}px`, height: `${kH}px` }}>
         {/* White keys */}
-        {whites.map((n, wi) => {
+        {whites.map((n) => {
           const ns = n.name + n.octave
-          const isHl = highlighted.includes(ns)
+          const hlIdx = highlighted.indexOf(ns)
+          const isHl = hlIdx >= 0
+          const col = isHl ? HL_GRADIENTS[hlIdx % HL_GRADIENTS.length] : null
           return (
             <div
               key={ns}
@@ -62,18 +74,16 @@ export function Piano({
               style={{
                 width: wW,
                 height: kH,
-                background: isHl
-                  ? 'linear-gradient(180deg,#e9d5ff 0%,#c084fc 60%,#a855f7 100%)'
-                  : 'linear-gradient(180deg,#eee8de 0%,#f8f4ec 100%)',
-                boxShadow: isHl
-                  ? '0 4px 5px rgba(0,0,0,.4),inset 0 -2px 3px rgba(0,0,0,.07),0 0 12px rgba(168,85,247,0.5)'
+                background: col ? col.white : 'linear-gradient(180deg,#eee8de 0%,#f8f4ec 100%)',
+                boxShadow: col
+                  ? `0 4px 5px rgba(0,0,0,.4),inset 0 -2px 3px rgba(0,0,0,.07),0 0 14px ${col.glow}`
                   : '0 4px 5px rgba(0,0,0,.4),inset 0 -2px 3px rgba(0,0,0,.07)',
               }}
             >
               {n.name === 'C' && (
                 <span
                   className="pointer-events-none absolute bottom-1.5 left-0 right-0 text-center font-mono text-[0.58rem] font-bold"
-                  style={{ color: isHl ? 'rgba(107,33,168,0.9)' : 'rgba(0,0,0,0.55)' }}
+                  style={{ color: col ? col.label : 'rgba(0,0,0,0.55)' }}
                 >
                   C{n.octave}
                 </span>
@@ -85,7 +95,9 @@ export function Piano({
         {/* Black keys */}
         {allNotes.filter(n => n.black).map(n => {
           const ns = n.name + n.octave
-          const isHl = highlighted.includes(ns)
+          const hlIdx = highlighted.indexOf(ns)
+          const isHl = hlIdx >= 0
+          const col = isHl ? HL_GRADIENTS[hlIdx % HL_GRADIENTS.length] : null
           const lw = whites.filter(w =>
             w.octave < n.octave || (w.octave === n.octave && w.s < n.s)
           )
@@ -106,11 +118,9 @@ export function Piano({
                 left,
                 width: bW,
                 height: bH,
-                background: isHl
-                  ? 'linear-gradient(180deg,#c084fc 0%,#7c3aed 100%)'
-                  : 'linear-gradient(180deg,#282018 0%,#1a1410 100%)',
-                boxShadow: isHl
-                  ? '2px 4px 8px rgba(0,0,0,.7),inset 0 -2px 3px rgba(255,255,255,.04),0 0 10px rgba(168,85,247,0.6)'
+                background: col ? col.black : 'linear-gradient(180deg,#282018 0%,#1a1410 100%)',
+                boxShadow: col
+                  ? `2px 4px 8px rgba(0,0,0,.7),inset 0 -2px 3px rgba(255,255,255,.04),0 0 12px ${col.glow}`
                   : '2px 4px 8px rgba(0,0,0,.7),inset 0 -2px 3px rgba(255,255,255,.04)',
               }}
             />
