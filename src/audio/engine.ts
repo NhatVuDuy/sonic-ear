@@ -147,7 +147,17 @@ class AudioEngine {
     for (const ns of this.voices.keys()) this.release(ns, true)
   }
 
+  // Eagerly create and resume the AudioContext.
+  // MUST be called synchronously inside a user-gesture handler on iOS.
+  warmUp() {
+    this.getAC()
+  }
+
   playNote(ns: string, duration = 1.8, velocity = 0.78, delay = 0) {
+    // getAC() called here — synchronously — so resume() is invoked while we
+    // are still inside a user-gesture call stack. iOS requires resume() to be
+    // in the synchronous gesture frame; setTimeout() breaks that requirement.
+    this.getAC()
     setTimeout(() => {
       this.attack(ns, velocity)
       setTimeout(() => this.release(ns, false), duration * 1000)
@@ -155,6 +165,7 @@ class AudioEngine {
   }
 
   playNotes(noteStrs: string[], arp = false, velocity = 0.75) {
+    this.getAC()
     if (arp) {
       noteStrs.forEach((ns, i) => this.playNote(ns, 1.2, velocity, i * 0.22))
     } else {
@@ -163,6 +174,7 @@ class AudioEngine {
   }
 
   playScale(noteStrs: string[], tempo = 0.2) {
+    this.getAC()
     noteStrs.forEach((ns, i) => this.playNote(ns, 0.85, 0.72, i * tempo))
     const rev = [...noteStrs].reverse().slice(1)
     rev.forEach((ns, i) => this.playNote(ns, 0.85, 0.68, (noteStrs.length + i) * tempo))
@@ -174,14 +186,11 @@ class AudioEngine {
 export const audio = new AudioEngine()
 
 if (typeof window !== 'undefined') {
-  // Resume AudioContext on any user interaction so auto-play works on iOS
-  // after the first tap (iOS blocks AudioContext until user gesture).
-  const resumeOnGesture = () => {
-    const ac = (audio as any).ac as AudioContext | null
-    if (ac && ac.state === 'suspended') ac.resume()
-  }
-  document.addEventListener('pointerdown', resumeOnGesture, { passive: true })
-  document.addEventListener('touchstart',  resumeOnGesture, { passive: true })
+  // On every user touch/click: eagerly create and resume the AudioContext so
+  // it is in 'running' state before any play call. This is the iOS unlock —
+  // the context must be created OR resumed within a synchronous gesture frame.
+  document.addEventListener('pointerdown', () => audio.warmUp(), { passive: true })
+  document.addEventListener('touchstart',  () => audio.warmUp(), { passive: true })
 
   window.addEventListener('mouseup',  () => audio.releaseAll())
   window.addEventListener('touchend', () => audio.releaseAll())
