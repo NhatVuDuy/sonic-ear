@@ -20,8 +20,23 @@ class AudioEngine {
       this.ac = new (window.AudioContext || (window as any).webkitAudioContext)()
       this.buildChain()
     }
+    // resume() is called but NOT awaited here — callers that need audio
+    // immediately should check state and use _scheduleAfterResume instead.
     if (this.ac.state === 'suspended') this.ac.resume()
     return this.ac
+  }
+
+  // Run fn immediately if context is running, otherwise wait for resume first.
+  // This is the fix for iOS Safari where AudioContext starts suspended when
+  // created outside a user gesture (e.g. auto-play from useEffect).
+  private _scheduleAfterResume(ac: AudioContext, fn: () => void) {
+    if (ac.state === 'running') {
+      fn()
+    } else {
+      ac.resume().then(fn).catch(() => {
+        // Ignore — AudioContext may be permanently blocked until user gesture
+      })
+    }
   }
 
   private buildChain() {
@@ -38,7 +53,6 @@ class AudioEngine {
     this.compressor.release.value = 0.28
     this.compressor.connect(this.masterGain)
 
-    // More wet mix for a resonant hall sound
     this.dryGain = ac.createGain()
     this.dryGain.gain.value = 0.58
     this.dryGain.connect(this.compressor)
@@ -47,14 +61,12 @@ class AudioEngine {
     this.reverbGain.gain.value = 0.42
     this.reverbGain.connect(this.compressor)
 
-    // Longer reverb with a gentler decay tail — sounds like a concert hall
     const sr = ac.sampleRate
     const len = Math.floor(sr * 3.8)
     const buf = ac.createBuffer(2, len, sr)
     for (let c = 0; c < 2; c++) {
       const ch = buf.getChannelData(c)
       for (let i = 0; i < len; i++) {
-        // Slower decay (1.5 exponent vs old 2.2) → longer, more natural tail
         ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 1.5)
       }
     }
@@ -63,15 +75,14 @@ class AudioEngine {
     this.reverbNode.connect(this.reverbGain)
   }
 
-  attack(ns: string, velocity = 0.8) {
-    const ac = this.getAC()
+  // Inner scheduling — must only be called when ac.state === 'running'
+  private _doAttack(ac: AudioContext, ns: string, velocity: number) {
     if (this.voices.has(ns)) this.release(ns, true)
 
     const [name, oct] = parseNote(ns)
     const hz = noteToHz(name, oct)
     const now = ac.currentTime
 
-    // Wider filter → more harmonics pass through → brighter, more "open" tone
     const filter = ac.createBiquadFilter()
     filter.type = 'lowpass'
     filter.frequency.value = Math.min(8000, 600 + hz * 4.5)
@@ -79,8 +90,8 @@ class AudioEngine {
 
     const env = ac.createGain()
     env.gain.setValueAtTime(0, now)
-    env.gain.linearRampToValueAtTime(velocity * 0.92, now + 0.002)  // snappy attack
-    env.gain.exponentialRampToValueAtTime(velocity * 0.26, now + 0.9) // slower decay → more sustain
+    env.gain.linearRampToValueAtTime(velocity * 0.92, now + 0.002)
+    env.gain.exponentialRampToValueAtTime(velocity * 0.26, now + 0.9)
     env.connect(filter)
     filter.connect(this.dryGain)
     filter.connect(this.reverbNode)
@@ -96,17 +107,23 @@ class AudioEngine {
       return o
     }
 
-    // More sine content (pure, bell-like) — less sawtooth (harsh/buzzy)
-    // Adding 3rd harmonic sine for bell character
     const oscs = [
-      makeOsc('triangle', hz,         0.42), // fundamental body
-      makeOsc('sawtooth', hz * 1.003, 0.09), // subtle warmth, much less harsh
-      makeOsc('sine',     hz * 0.5,   0.22), // sub-octave depth
-      makeOsc('sine',     hz * 2,     0.20), // 2nd harmonic shimmer
-      makeOsc('sine',     hz * 3,     0.08), // 3rd harmonic — bell/crystal character
+      makeOsc('triangle', hz,         0.42),
+      makeOsc('sawtooth', hz * 1.003, 0.09),
+      makeOsc('sine',     hz * 0.5,   0.22),
+      makeOsc('sine',     hz * 2,     0.20),
+      makeOsc('sine',     hz * 3,     0.08),
     ]
 
     this.voices.set(ns, { oscs, env, filter })
+  }
+
+  attack(ns: string, velocity = 0.8) {
+    const ac = this.getAC()
+    // _scheduleAfterResume ensures audio nodes are only created once the
+    // AudioContext is running — critical for iOS where the context starts
+    // suspended if created outside a direct user gesture.
+    this._scheduleAfterResume(ac, () => this._doAttack(ac, ns, velocity))
   }
 
   release(ns: string, immediate = false) {
@@ -115,7 +132,7 @@ class AudioEngine {
     this.voices.delete(ns)
 
     const now = this.ac.currentTime
-    const rel = immediate ? 0.04 : 2.2  // longer release = more natural sustain
+    const rel = immediate ? 0.04 : 2.2
     voice.env.gain.cancelScheduledValues(now)
     voice.env.gain.setValueAtTime(voice.env.gain.value, now)
     voice.env.gain.exponentialRampToValueAtTime(0.0001, now + rel)
@@ -130,7 +147,6 @@ class AudioEngine {
     for (const ns of this.voices.keys()) this.release(ns, true)
   }
 
-  // Play a note for a fixed duration (ear training)
   playNote(ns: string, duration = 1.8, velocity = 0.78, delay = 0) {
     setTimeout(() => {
       this.attack(ns, velocity)
@@ -138,7 +154,6 @@ class AudioEngine {
     }, delay * 1000)
   }
 
-  // Play multiple notes (chord or arpeggio)
   playNotes(noteStrs: string[], arp = false, velocity = 0.75) {
     if (arp) {
       noteStrs.forEach((ns, i) => this.playNote(ns, 1.2, velocity, i * 0.22))
@@ -147,7 +162,6 @@ class AudioEngine {
     }
   }
 
-  // Play a scale up and down
   playScale(noteStrs: string[], tempo = 0.2) {
     noteStrs.forEach((ns, i) => this.playNote(ns, 0.85, 0.72, i * tempo))
     const rev = [...noteStrs].reverse().slice(1)
@@ -157,11 +171,18 @@ class AudioEngine {
   isReady() { return this.ac !== null }
 }
 
-// Singleton
 export const audio = new AudioEngine()
 
-// Global safety release
 if (typeof window !== 'undefined') {
+  // Resume AudioContext on any user interaction so auto-play works on iOS
+  // after the first tap (iOS blocks AudioContext until user gesture).
+  const resumeOnGesture = () => {
+    const ac = (audio as any).ac as AudioContext | null
+    if (ac && ac.state === 'suspended') ac.resume()
+  }
+  document.addEventListener('pointerdown', resumeOnGesture, { passive: true })
+  document.addEventListener('touchstart',  resumeOnGesture, { passive: true })
+
   window.addEventListener('mouseup',  () => audio.releaseAll())
   window.addEventListener('touchend', () => audio.releaseAll())
   document.addEventListener('visibilitychange', () => {
