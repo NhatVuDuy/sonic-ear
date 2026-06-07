@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useCallback } from 'react'
 import { NOTE_NAMES, IS_BLACK } from '@/theory'
 import { audio } from '@/audio/engine'
 
@@ -22,7 +22,6 @@ export function Piano({
   const bW = small ? 20 : 25
   const bH = small ? 46 : 74
 
-  // Build note list
   const allNotes: { name: string; octave: number; s: number; black: boolean }[] = []
   for (let oct = startOctave; oct < startOctave + numOctaves; oct++) {
     for (let s = 0; s < 12; s++) {
@@ -59,18 +58,23 @@ export function Piano({
               onMouseLeave={() => handleRelease(ns)}
               onTouchStart={e => { e.preventDefault(); handleAttack(ns) }}
               onTouchEnd={() => handleRelease(ns)}
-              className="relative z-10 flex-shrink-0 cursor-pointer rounded-b-lg border border-black/20 transition-[background] duration-[60ms]"
+              className="relative z-10 flex-shrink-0 cursor-pointer rounded-b-lg border border-black/20 transition-[background,box-shadow] duration-[60ms]"
               style={{
                 width: wW,
                 height: kH,
                 background: isHl
-                  ? 'linear-gradient(180deg,#b8f0d0 0%,#72c898 100%)'
+                  ? 'linear-gradient(180deg,#e9d5ff 0%,#c084fc 60%,#a855f7 100%)'
                   : 'linear-gradient(180deg,#eee8de 0%,#f8f4ec 100%)',
-                boxShadow: '0 4px 5px rgba(0,0,0,.4),inset 0 -2px 3px rgba(0,0,0,.07)',
+                boxShadow: isHl
+                  ? '0 4px 5px rgba(0,0,0,.4),inset 0 -2px 3px rgba(0,0,0,.07),0 0 12px rgba(168,85,247,0.5)'
+                  : '0 4px 5px rgba(0,0,0,.4),inset 0 -2px 3px rgba(0,0,0,.07)',
               }}
             >
               {n.name === 'C' && (
-                <span className="pointer-events-none absolute bottom-1.5 left-0 right-0 text-center font-mono text-[0.58rem] font-semibold text-black/60">
+                <span
+                  className="pointer-events-none absolute bottom-1.5 left-0 right-0 text-center font-mono text-[0.58rem] font-bold"
+                  style={{ color: isHl ? 'rgba(107,33,168,0.9)' : 'rgba(0,0,0,0.55)' }}
+                >
                   C{n.octave}
                 </span>
               )}
@@ -97,15 +101,17 @@ export function Piano({
               onMouseLeave={() => handleRelease(ns)}
               onTouchStart={e => { e.preventDefault(); handleAttack(ns) }}
               onTouchEnd={() => handleRelease(ns)}
-              className="absolute top-0 z-20 cursor-pointer rounded-b-md transition-[background] duration-[60ms]"
+              className="absolute top-0 z-20 cursor-pointer rounded-b-md transition-[background,box-shadow] duration-[60ms]"
               style={{
                 left,
                 width: bW,
                 height: bH,
                 background: isHl
-                  ? 'linear-gradient(180deg,#34d399 0%,#2a7a50 100%)'
+                  ? 'linear-gradient(180deg,#c084fc 0%,#7c3aed 100%)'
                   : 'linear-gradient(180deg,#282018 0%,#1a1410 100%)',
-                boxShadow: '2px 4px 8px rgba(0,0,0,.7),inset 0 -2px 3px rgba(255,255,255,.04)',
+                boxShadow: isHl
+                  ? '2px 4px 8px rgba(0,0,0,.7),inset 0 -2px 3px rgba(255,255,255,.04),0 0 10px rgba(168,85,247,0.6)'
+                  : '2px 4px 8px rgba(0,0,0,.7),inset 0 -2px 3px rgba(255,255,255,.04)',
               }}
             />
           )
