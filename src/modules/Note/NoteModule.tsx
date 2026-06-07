@@ -48,13 +48,13 @@ export function NoteModule() {
   return (
     <div className="flex flex-col gap-4 animate-[fadeUp_.32s_ease_both]">
       <div>
-        <div className="font-display italic text-[1rem] text-[#a89880]">Nhận diện Nốt đơn</div>
-        <p className="mt-1 text-[.82rem] text-[#a89880]">Nghe một nốt và chọn tên nốt đúng</p>
+        <div className="font-display italic text-[1rem] text-[#a8a4cc]">Nhận diện Nốt đơn</div>
+        <p className="mt-1 text-[.82rem] text-[#a8a4cc]">Nghe một nốt và chọn tên nốt đúng</p>
       </div>
       <Card className="text-center">
         <div className="flex flex-col items-center gap-3 py-3">
           <PlayBtn onClick={() => play(q.ns)} isPlaying={isPlaying} />
-          <div className="font-display text-[4.5rem] leading-none" style={{ color: answered ? (ok ? 'var(--color-ok)' : 'var(--color-bad)') : 'rgba(201,168,76,.35)' }}>
+          <div className="font-display text-[4.5rem] leading-none" style={{ color: answered ? (ok ? 'var(--color-ok)' : 'var(--color-bad)') : 'rgba(129,140,248,.35)' }}>
             {answered ? q.correct : '?'}
           </div>
         </div>
@@ -62,7 +62,7 @@ export function NoteModule() {
           {opts.map(n => {
             const state = !answered?'idle': n===q.correct?'reveal': n===selected?'wrong':'idle'
             return <OptionBtn key={n} state={state} onClick={()=>answer(n)} disabled={answered}>
-              <div className="font-display text-[1.05rem] text-[#e8c96d]">{n}</div>
+              <div className="font-display text-[1.05rem] text-[#c7d2fe]">{n}</div>
             </OptionBtn>
           })}
         </div>

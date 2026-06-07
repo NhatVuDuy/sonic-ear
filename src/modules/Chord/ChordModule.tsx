@@ -58,14 +58,14 @@ export function ChordModule() {
   return (
     <div className="flex flex-col gap-4 animate-[fadeUp_.32s_ease_both]">
       <div>
-        <div className="font-display italic text-[1rem] text-[#a89880]">Nhận diện Hợp âm</div>
+        <div className="font-display italic text-[1rem] text-[#a8a4cc]">Nhận diện Hợp âm</div>
         <ModuleTabs options={[{value:'basic' as Mode,label:'Major/Minor'},{value:'triads' as Mode,label:'Tam âm'},{value:'all' as Mode,label:'Tất cả'}]} value={mode} onChange={m=>{setMode(m);newQ(m)}} />
       </div>
       <Card>
         <div className="flex items-center justify-center gap-5 py-3">
           <PlayBtn onClick={() => playChord(q.cns, false)} isPlaying={isPlaying} />
           <div className="flex-1 text-center">
-            <div className="font-display text-4xl text-[rgba(201,168,76,.40)]">{answered ? NOTE_DISPLAY[q.ri] : '?'}</div>
+            <div className="font-display text-4xl text-[rgba(129,140,248,.40)]">{answered ? NOTE_DISPLAY[q.ri] : '?'}</div>
             <div className="mt-2 flex gap-2 justify-center">
               <Btn size="sm" onClick={() => playChord(q.cns, false)}>🎹 Đồng thời</Btn>
               <Btn size="sm" onClick={() => playChord(q.cns, true)}>🎵 Arpeggio</Btn>
@@ -76,7 +76,7 @@ export function ChordModule() {
           {opts.map(k => {
             const state = !answered?'idle': k===q.ck?'reveal': k===selected?'wrong':'idle'
             return <OptionBtn key={k} state={state} onClick={()=>answer(k)} disabled={answered}>
-              <div className="text-[.85rem] text-[#e8c96d]">{CHORDS[k].name}</div>
+              <div className="text-[.85rem] text-[#c7d2fe]">{CHORDS[k].name}</div>
               <div className="mt-0.5 text-[.68rem]">{CHORDS[k].vn}</div>
             </OptionBtn>
           })}

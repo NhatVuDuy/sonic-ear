@@ -103,7 +103,7 @@ export function Piano({
                 width: bW,
                 height: bH,
                 background: isHl
-                  ? 'linear-gradient(180deg,#4caf82 0%,#2a7a50 100%)'
+                  ? 'linear-gradient(180deg,#34d399 0%,#2a7a50 100%)'
                   : 'linear-gradient(180deg,#282018 0%,#1a1410 100%)',
                 boxShadow: '2px 4px 8px rgba(0,0,0,.7),inset 0 -2px 3px rgba(255,255,255,.04)',
               }}

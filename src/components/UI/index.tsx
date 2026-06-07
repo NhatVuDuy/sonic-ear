@@ -3,15 +3,15 @@ import { ReactNode } from 'react'
 // ─── Card ────────────────────────────────────────────────
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`relative rounded-xl border border-white/[0.10] bg-[#1e1a14]/90 p-5 ${className}`}>
-      <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-[#c9a84c]/30 to-transparent" />
+    <div className={`relative rounded-xl border border-white/[0.10] bg-[#201b3e]/90 p-5 ${className}`}>
+      <div className="pointer-events-none absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-[#818cf8]/30 to-transparent" />
       {children}
     </div>
   )
 }
 
 export function CardTitle({ children }: { children: ReactNode }) {
-  return <div className="font-display mb-3 text-sm tracking-wide text-[#c9a84c]">{children}</div>
+  return <div className="font-display mb-3 text-sm tracking-wide text-[#818cf8]">{children}</div>
 }
 
 // ─── Buttons ─────────────────────────────────────────────
@@ -28,9 +28,9 @@ export function Btn({ children, onClick, variant = 'ghost', disabled, className 
   const base = 'inline-flex items-center justify-center gap-1.5 rounded-lg font-mono tracking-wider transition-all duration-200 cursor-pointer select-none disabled:opacity-30 disabled:cursor-not-allowed'
   const sz   = size === 'sm' ? 'px-3 py-1.5 text-[0.68rem]' : 'px-4 py-2.5 text-[0.76rem]'
   const variants: Record<BtnVariant, string> = {
-    gold:    'bg-gradient-to-r from-[#c9a84c] via-[#e8c96d] to-[#c9a84c] text-[#0d0b08] font-medium shadow-[0_4px_18px_rgba(201,168,76,.28)] hover:shadow-[0_6px_28px_rgba(201,168,76,.45)] hover:-translate-y-px',
-    outline: 'bg-transparent text-[#c9a84c] border border-[rgba(201,168,76,.3)] hover:bg-[rgba(201,168,76,.08)] hover:border-[#c9a84c]',
-    ghost:   'bg-white/[0.04] text-[#8a7d6a] border border-white/[0.07] hover:bg-white/[0.09] hover:text-[#e8dcc8]',
+    gold:    'bg-gradient-to-r from-[#818cf8] via-[#c7d2fe] to-[#818cf8] text-[#0b0918] font-medium shadow-[0_4px_18px_rgba(129,140,248,.28)] hover:shadow-[0_6px_28px_rgba(129,140,248,.45)] hover:-translate-y-px',
+    outline: 'bg-transparent text-[#818cf8] border border-[rgba(129,140,248,.3)] hover:bg-[rgba(129,140,248,.08)] hover:border-[#818cf8]',
+    ghost:   'bg-white/[0.04] text-[#8880b4] border border-white/[0.07] hover:bg-white/[0.09] hover:text-[#ddd8f5]',
   }
   return (
     <button className={`${base} ${sz} ${variants[variant]} ${className}`} onClick={onClick} disabled={disabled}>
@@ -44,7 +44,7 @@ export function PlayBtn({ onClick, isPlaying }: { onClick: () => void; isPlaying
   return (
     <button
       onClick={onClick}
-      className={`flex h-16 w-16 flex-shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-gradient-to-br from-[#c9a84c] to-[#e8c96d] text-[#0d0b08] shadow-[0_0_0_0_rgba(201,168,76,.35)] transition-all duration-300 hover:scale-[1.07] hover:shadow-[0_0_0_10px_rgba(201,168,76,.1)] ${isPlaying ? 'animate-pulse-gold' : ''}`}
+      className={`flex h-16 w-16 flex-shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-gradient-to-br from-[#818cf8] to-[#c7d2fe] text-[#0b0918] shadow-[0_0_0_0_rgba(129,140,248,.35)] transition-all duration-300 hover:scale-[1.07] hover:shadow-[0_0_0_10px_rgba(129,140,248,.1)] ${isPlaying ? 'animate-pulse-gold' : ''}`}
     >
       <span className="ml-1 text-2xl">▶</span>
     </button>
@@ -55,9 +55,9 @@ export function PlayBtn({ onClick, isPlaying }: { onClick: () => void; isPlaying
 type FbState = 'idle' | 'correct' | 'wrong'
 export function FeedbackBar({ state, children }: { state: FbState; children: ReactNode }) {
   const cls = {
-    idle:    'bg-[rgba(22,18,13,.65)] border-[rgba(201,168,76,.15)] text-[#b0a28e]',
-    correct: 'bg-[rgba(76,175,130,.09)] border-[rgba(76,175,130,.35)] text-[#4caf82]',
-    wrong:   'bg-[rgba(201,76,76,.09)] border-[rgba(201,76,76,.35)] text-[#c94c4c]',
+    idle:    'bg-[rgba(20,17,45,.65)] border-[rgba(129,140,248,.15)] text-[#b0acd8]',
+    correct: 'bg-[rgba(52,211,153,.09)] border-[rgba(52,211,153,.35)] text-[#34d399]',
+    wrong:   'bg-[rgba(248,113,113,.09)] border-[rgba(248,113,113,.35)] text-[#f87171]',
   }[state]
   return (
     <div className={`flex h-12 items-center justify-center gap-2 rounded-xl border font-display text-base transition-all duration-300 ${cls}`}>
@@ -72,10 +72,10 @@ export function OptionBtn({
   children, onClick, state = 'idle', disabled
 }: { children: ReactNode; onClick?: () => void; state?: OptState; disabled?: boolean }) {
   const cls = {
-    idle:   'border-[rgba(201,168,76,.14)] bg-[rgba(22,18,13,.92)] text-[#e8dcc8] hover:border-[#c9a84c] hover:text-[#c9a84c] hover:bg-[rgba(201,168,76,.06)]',
-    correct:'border-[#4caf82] bg-[rgba(76,175,130,.14)] text-[#4caf82]',
-    wrong:  'border-[#c94c4c] bg-[rgba(201,76,76,.14)] text-[#c94c4c]',
-    reveal: 'border-[rgba(76,175,130,.4)] bg-[rgba(76,175,130,.07)] text-[#4caf82]',
+    idle:   'border-[rgba(129,140,248,.14)] bg-[rgba(20,17,45,.92)] text-[#ddd8f5] hover:border-[#818cf8] hover:text-[#818cf8] hover:bg-[rgba(129,140,248,.06)]',
+    correct:'border-[#34d399] bg-[rgba(52,211,153,.14)] text-[#34d399]',
+    wrong:  'border-[#f87171] bg-[rgba(248,113,113,.14)] text-[#f87171]',
+    reveal: 'border-[rgba(52,211,153,.4)] bg-[rgba(52,211,153,.07)] text-[#34d399]',
   }[state]
   return (
     <button
@@ -100,8 +100,8 @@ export function ModuleTabs<T extends string>({
           onClick={() => onChange(o.value)}
           className={`rounded-full border px-3 py-1 font-mono text-[0.7rem] tracking-wider transition-all duration-200 ${
             o.value === value
-              ? 'border-[rgba(201,168,76,.28)] bg-[rgba(201,168,76,.1)] text-[#c9a84c]'
-              : 'border-white/[0.07] bg-white/[0.04] text-[#8a7d6a] hover:text-[#e8dcc8]'
+              ? 'border-[rgba(129,140,248,.28)] bg-[rgba(129,140,248,.1)] text-[#818cf8]'
+              : 'border-white/[0.07] bg-white/[0.04] text-[#8880b4] hover:text-[#ddd8f5]'
           }`}
         >
           {o.label}
@@ -114,9 +114,9 @@ export function ModuleTabs<T extends string>({
 // ─── Stat Box ─────────────────────────────────────────────
 export function StatBox({ value, label }: { value: string | number; label: string }) {
   return (
-    <div className="flex-1 rounded-xl border border-[rgba(201,168,76,.1)] bg-[rgba(22,18,13,.88)] p-3 text-center">
-      <div className="font-display text-2xl text-[#c9a84c]">{value}</div>
-      <div className="mt-0.5 font-mono text-[0.65rem] tracking-[.14em] text-[#a89880]">{label}</div>
+    <div className="flex-1 rounded-xl border border-[rgba(129,140,248,.1)] bg-[rgba(20,17,45,.88)] p-3 text-center">
+      <div className="font-display text-2xl text-[#818cf8]">{value}</div>
+      <div className="mt-0.5 font-mono text-[0.65rem] tracking-[.14em] text-[#a8a4cc]">{label}</div>
     </div>
   )
 }
@@ -127,7 +127,7 @@ export function ProgressBar({ value, max }: { value: number; max: number }) {
   return (
     <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
       <div
-        className="h-full rounded-full bg-gradient-to-r from-[#7a6230] to-[#c9a84c] transition-all duration-500"
+        className="h-full rounded-full bg-gradient-to-r from-[#4338ca] to-[#818cf8] transition-all duration-500"
         style={{ width: `${pct}%` }}
       />
     </div>
@@ -137,7 +137,7 @@ export function ProgressBar({ value, max }: { value: number; max: number }) {
 // ─── Note Bubble ─────────────────────────────────────────
 export function NoteBubble({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[rgba(201,168,76,.28)] bg-[rgba(201,168,76,.06)] font-display text-sm font-bold text-[#c9a84c]">
+    <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-[rgba(129,140,248,.28)] bg-[rgba(129,140,248,.06)] font-display text-sm font-bold text-[#818cf8]">
       {children}
     </div>
   )
