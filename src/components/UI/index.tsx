@@ -132,8 +132,8 @@ export function OptionBtn({
         style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 1px 0 rgba(0,0,0,0.04)' }}
         onMouseEnter={e => {
           const el = e.currentTarget
-          el.style.borderColor = 'var(--accent, #ff6b6b)'
-          el.style.color = 'var(--accent, #ff6b6b)'
+          el.style.borderColor = 'var(--accent-dark, var(--accent, #c92a2a))'
+          el.style.color = 'var(--accent-dark, var(--accent, #c92a2a))'
           el.style.background = 'color-mix(in srgb, var(--accent, #ff6b6b) 8%, white)'
         }}
         onMouseLeave={e => {

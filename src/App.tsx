@@ -47,8 +47,13 @@ function Header() {
     >
       <div className="flex items-center gap-3">
         <div
-          className="animate-bounce-in flex h-11 w-11 items-center justify-center rounded-2xl text-[1.5rem]"
-          style={{ background: 'linear-gradient(135deg,#ff6b6b,#ff9f43)', boxShadow: '0 4px 14px rgba(255,107,107,0.4)' }}
+          className="flex h-11 w-11 items-center justify-center rounded-2xl text-[1.5rem]"
+          style={{
+            background: 'linear-gradient(270deg,#ff6b6b,#ff9f43,#ffd93d,#26de81,#4d96ff,#a29bfe,#fd79a8,#ff6b6b)',
+            backgroundSize: '400% 400%',
+            animation: 'logo-colors 4s ease infinite',
+            boxShadow: '0 4px 14px rgba(255,107,107,0.35)',
+          }}
         >
           🎵
         </div>

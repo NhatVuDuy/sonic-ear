@@ -92,6 +92,11 @@
   75%      { transform: scale(1.1) rotate(3deg); }
 }
 
+@keyframes logo-colors {
+  0%,100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
 @layer utilities {
   .animate-bounce-in   { animation: bounce-in .45s cubic-bezier(.34,1.4,.64,1) both; }
   .animate-wiggle      { animation: wiggle .5s ease both; }

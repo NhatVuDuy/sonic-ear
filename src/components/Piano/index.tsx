@@ -2,7 +2,12 @@ import { useCallback } from 'react'
 import { NOTE_NAMES, IS_BLACK } from '@/theory'
 import { audio } from '@/audio/engine'
 
-// Kids theme: each white key has its own note-color (Do=red, Re=orange…).
+// Vietnamese solfège names for kids in Vietnam — used as piano key labels
+const SOLFEGE: Record<string, string> = {
+  'C': 'Đô', 'D': 'Rê', 'E': 'Mi', 'F': 'Fa', 'G': 'Sol', 'A': 'La', 'B': 'Si',
+}
+
+// Kids theme: each white key has its own note-color (Đô=red, Rê=orange…).
 // All white keys show their note name for easy learning.
 const NOTE_COLORS: Record<string, { bg: string; text: string }> = {
   'C':  { bg: 'rgba(255,107,107,0.13)', text: '#c92a2a' },
@@ -86,17 +91,15 @@ export function Piano({
                   : '0 3px 5px rgba(0,0,0,.10)',
               }}
             >
-              {/* Note label — all white keys, colored by note */}
               <span
                 className="pointer-events-none absolute bottom-1.5 left-0 right-0 text-center font-mono font-bold"
                 style={{
-                  fontSize: small ? '0.48rem' : '0.58rem',
+                  fontSize: small ? '0.5rem' : '0.62rem',
                   color: isHl ? 'rgba(255,255,255,0.92)' : nc.text,
                   textShadow: isHl ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
                 }}
               >
-                {/* Show octave number only on C keys */}
-                {n.name}{n.name === 'C' ? n.octave : ''}
+                {SOLFEGE[n.name] ?? n.name}{n.name === 'C' ? n.octave : ''}
               </span>
             </div>
           )
