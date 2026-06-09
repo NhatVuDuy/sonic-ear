@@ -1,58 +1,140 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
 import { PracticePage } from '@/pages/Practice'
+import { useStore } from '@/store'
+import { THEMES, THEME_IDS, applyTheme } from '@/theme'
 
-function Header() {
+// ─── Theme switcher pills ────────────────────────────────────────────────
+function ThemeSwitcher() {
+  const { themeId, setTheme } = useStore()
   return (
-    <header className="flex items-center justify-between border-b border-[rgba(201,168,76,.15)] bg-[rgba(13,11,8,.8)] px-8 py-4 backdrop-blur-md">
-      <div>
-        <div className="flex items-center gap-2.5 font-display text-[1.4rem] font-bold tracking-wide text-[#c9a84c]">
-          <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="14.5" stroke="#c9a84c" strokeWidth="1.4"/>
-            <path d="M10 22V12l12-2v8" stroke="#c9a84c" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="9" cy="23" r="2.8" fill="#c9a84c" opacity=".85"/>
-            <circle cx="21" cy="19" r="2.8" fill="#c9a84c" opacity=".85"/>
-          </svg>
-          SonicEar
+    <div className="flex items-center gap-1">
+      {THEME_IDS.map(id => {
+        const t = THEMES[id]
+        const active = id === themeId
+        return (
+          <button
+            key={id}
+            title={t.label}
+            onClick={() => { setTheme(id); applyTheme(id) }}
+            className="flex items-center justify-center rounded-full transition-all duration-200 active:scale-90 hover:scale-110 cursor-pointer"
+            style={{
+              width: 32,
+              height: 32,
+              fontSize: '1.1rem',
+              opacity: active ? 1 : 0.45,
+              boxShadow: active ? '0 0 0 2px var(--accent, #ff6b6b), 0 0 0 4px rgba(255,255,255,0.15)' : 'none',
+              background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
+            }}
+          >
+            {t.emoji}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── Floating decorations ────────────────────────────────────────────────
+function FloatingDeco() {
+  const { themeId } = useStore()
+  const isDark = THEMES[themeId].isDark
+  const decos = [
+    { symbol: '♩', top: '8%',  left: '5%',  size: '2rem',   color: isDark ? '#c9a84c' : '#ff6b6b', delay: '0s',   dur: '4s'   },
+    { symbol: '♪', top: '15%', left: '88%', size: '1.8rem', color: isDark ? '#c9a84c' : '#ff9f43', delay: '0.5s', dur: '3.5s' },
+    { symbol: '⭐', top: '58%', left: '3%',  size: '1.5rem', color: isDark ? '#e8c96d' : '#ffd93d', delay: '1s',   dur: '5s'   },
+    { symbol: '♫', top: '72%', left: '92%', size: '2rem',   color: isDark ? '#c9a84c' : '#4d96ff', delay: '1.5s', dur: '4.2s' },
+    { symbol: '🎵', top: '38%', left: '95%', size: '1.4rem', color: isDark ? '#e8c96d' : '#a29bfe', delay: '0.8s', dur: '3.8s' },
+    { symbol: '✨', top: '82%', left: '10%', size: '1.5rem', color: isDark ? '#c9a84c' : '#fd79a8', delay: '2s',   dur: '4.5s' },
+    { symbol: '♬', top: '25%', left: '2%',  size: '1.6rem', color: isDark ? '#e8c96d' : '#26de81', delay: '0.3s', dur: '3.2s' },
+    { symbol: '🌟', top: '48%', left: '96%', size: '1.4rem', color: isDark ? '#c9a84c' : '#ffd93d', delay: '2.5s', dur: '4.8s' },
+  ]
+
+  const blobOpacity = isDark ? 0.08 : 0.06
+  const blob1 = isDark ? `rgba(201,168,76,${blobOpacity * 10})` : `rgba(255,107,107,${blobOpacity * 10})`
+  const blob2 = isDark ? `rgba(201,168,76,${blobOpacity * 8})`  : `rgba(77,150,255,${blobOpacity * 10})`
+  const blob3 = isDark ? `rgba(201,168,76,${blobOpacity * 6})`  : `rgba(255,211,61,${blobOpacity * 8})`
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      <div className="absolute inset-0" style={{ background: 'var(--t-bg, #fffdf5)', transition: 'background 0.35s ease' }} />
+
+      {decos.map((d, i) => (
+        <div
+          key={i}
+          className="animate-float absolute select-none"
+          style={{ top: d.top, left: d.left, fontSize: d.size, color: d.color, animationDelay: d.delay, animationDuration: d.dur, opacity: isDark ? 0.35 : 0.55 }}
+        >
+          {d.symbol}
         </div>
-        <div className="font-mono text-[.66rem] tracking-[.2em] text-[#8a7d6a]">LUYỆN CẢM ÂM · EAR TRAINING</div>
+      ))}
+
+      <div className="absolute rounded-full" style={{ width: 600, height: 400, top: '-5%', left: '-5%',   background: blob1, filter: 'blur(80px)' }} />
+      <div className="absolute rounded-full" style={{ width: 500, height: 400, bottom: '-5%', right: '-5%', background: blob2, filter: 'blur(80px)' }} />
+      <div className="absolute rounded-full" style={{ width: 400, height: 400, top: '40%', left: '40%',   background: blob3, filter: 'blur(80px)' }} />
+    </div>
+  )
+}
+
+// ─── Header ───────────────────────────────────────────────────────────────
+function Header() {
+  const { themeId } = useStore()
+  const theme = THEMES[themeId]
+  const isDark = theme.isDark
+
+  return (
+    <header
+      className="relative flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4"
+      style={{
+        background: 'var(--t-header-bg)',
+        backdropFilter: 'blur(20px)',
+        border: 'var(--t-header-border)',
+        borderTop: 'none',
+        borderLeft: 'none',
+        borderRight: 'none',
+        boxShadow: isDark
+          ? '0 2px 18px rgba(0,0,0,0.3)'
+          : '0 2px 18px rgba(255,107,107,0.08)',
+      }}
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className="flex h-11 w-11 items-center justify-center rounded-2xl text-[1.5rem]"
+          style={theme.logoStyle as React.CSSProperties}
+        >
+          🎵
+        </div>
+        <div>
+          <div
+            className="font-display text-[1.45rem] font-bold leading-tight"
+            style={{ color: isDark ? 'var(--t-text)' : undefined }}
+          >
+            {isDark ? 'SonicEar' : <span className="grad-text">SonicEar</span>}
+          </div>
+          <div className="font-mono text-[.53rem] tracking-[.15em] t-dim">🎹 LUYỆN CẢM ÂM VUI VẺ</div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <ThemeSwitcher />
+        <span className="hidden sm:block font-mono text-[.5rem] t-dim">{__BUILD_INFO__}</span>
       </div>
     </header>
   )
 }
 
-// SVG decorative background
-function Background() {
-  return (
-    <svg className="pointer-events-none fixed inset-0 z-0" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
-      <defs>
-        <radialGradient id="g1" cx="18%" cy="28%" r="55%"><stop offset="0%" stopColor="#2a1e08"/><stop offset="100%" stopColor="#0d0b08"/></radialGradient>
-        <radialGradient id="g2" cx="82%" cy="72%" r="48%"><stop offset="0%" stopColor="#1a1208"/><stop offset="100%" stopColor="#0d0b08" stopOpacity="0"/></radialGradient>
-        <filter id="bl"><feGaussianBlur stdDeviation="45"/></filter>
-      </defs>
-      <rect width="1440" height="900" fill="url(#g1)"/>
-      <rect width="1440" height="900" fill="url(#g2)"/>
-      <circle cx="180" cy="140" r="280" fill="#c9a84c" opacity=".045" filter="url(#bl)"/>
-      <circle cx="1280" cy="720" r="240" fill="#6b4cf6" opacity=".03" filter="url(#bl)"/>
-      <g stroke="#c9a84c" strokeWidth=".5" opacity=".07" fill="none">
-        <path d="M720,0 L820,100 L720,200 L620,100Z"/>
-        <path d="M720,0 L950,230 L720,460 L490,230Z"/>
-        <circle cx="720" cy="450" r="190"/><circle cx="720" cy="450" r="290"/>
-        <line x1="0" y1="0" x2="380" y2="380"/><line x1="1440" y1="0" x2="1060" y2="380"/>
-      </g>
-      <g fill="#c9a84c" opacity=".032" fontFamily="serif" fontSize="88">
-        <text x="40" y="480">♩</text><text x="1310" y="280">♪</text>
-        <text x="80" y="790">♫</text><text x="660" y="870">𝄞</text>
-      </g>
-    </svg>
-  )
+// ─── Theme initializer ────────────────────────────────────────────────────
+function ThemeInit() {
+  const themeId = useStore(s => s.themeId)
+  useEffect(() => { applyTheme(themeId) }, [themeId])
+  return null
 }
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Background />
-      <div className="grain pointer-events-none fixed inset-0 z-[1] opacity-[.03]"
-        style={{backgroundImage:`url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,backgroundSize:'200px'}} />
+    <HashRouter>
+      <ThemeInit />
+      <FloatingDeco />
       <div className="relative z-[2] flex min-h-screen flex-col">
         <Header />
         <Routes>
@@ -60,6 +142,6 @@ export default function App() {
           <Route path="/practice" element={<PracticePage />} />
         </Routes>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   )
 }

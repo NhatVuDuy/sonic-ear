@@ -58,7 +58,7 @@ export function ScaleModule() {
   return (
     <div className="flex flex-col gap-4 animate-[fadeUp_.32s_ease_both]">
       <div>
-        <div className="font-display italic text-[1rem] text-[#8a7d6a]">Nhận diện Điệu thức / Gam</div>
+        <div className="font-display italic text-[1rem] t-dim">Nhận diện Điệu thức / Gam</div>
         <ModuleTabs options={[{value:'basic' as Mode,label:'Cơ bản'},{value:'medium' as Mode,label:'Trung cấp'},{value:'all' as Mode,label:'Nâng cao'}]} value={mode} onChange={m=>{setMode(m);newQ(m)}} />
       </div>
       <Card>
@@ -67,19 +67,31 @@ export function ScaleModule() {
           <div className="flex-1 text-center">
             <div className="flex gap-1.5 flex-wrap justify-center">
               {['I','II','III','IV','V','VI','VII'].map((d,i) => (
-                <div key={d} className={`flex h-8 w-8 items-center justify-center rounded-md border font-mono text-[.62rem] ${i===0?'border-[#c9a84c] bg-[rgba(201,168,76,.17)] text-[#c9a84c]':'border-[rgba(201,168,76,.12)] bg-[rgba(201,168,76,.07)] text-[#8a7d6a]'}`}>
+                <div
+                  key={d}
+                  className="flex h-8 w-8 items-center justify-center rounded-md border font-mono text-[.62rem] font-bold"
+                  style={i === 0 ? {
+                    borderColor: 'var(--accent)',
+                    background: 'color-mix(in srgb, var(--accent) 10%, transparent)',
+                    color: 'var(--accent-dark, var(--accent))',
+                  } : {
+                    borderColor: 'var(--t-opt-border, #e5e7eb)',
+                    background: 'var(--t-opt-bg, white)',
+                    color: 'var(--t-dim, #6b7280)',
+                  }}
+                >
                   {answered && q.sns[i] ? NOTE_DISPLAY[NOTE_NAMES.indexOf(q.sns[i].replace(/\d/,'') as any)] : d}
                 </div>
               ))}
             </div>
-            <p className="mt-2 font-mono text-[0.7rem] text-[#8a7d6a]">Nghe lên và xuống</p>
+            <p className="mt-2 font-mono text-[0.7rem] t-dim">Nghe lên và xuống</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2">
           {opts.map(k => {
             const state = !answered?'idle': k===q.sk?'reveal': k===selected?'wrong':'idle'
             return <OptionBtn key={k} state={state} onClick={()=>answer(k)} disabled={answered}>
-              <div className="text-[.85rem] text-[#e8c96d]">{SCALES[k].name}</div>
+              <div className="text-[.85rem] t-lbl">{SCALES[k].name}</div>
               <div className="mt-0.5 text-[.68rem]">{SCALES[k].vn}</div>
             </OptionBtn>
           })}
@@ -90,8 +102,8 @@ export function ScaleModule() {
           :ok?<>✓ Xuất sắc! <b>{NOTE_DISPLAY[q.ri]} {q.sc.vn}</b><span className="cursor-pointer underline opacity-70 ml-2" onClick={()=>newQ()}>Tiếp →</span></>
           :<>✗ Sai. Đáp án: <b>{NOTE_DISPLAY[q.ri]} {q.sc.vn}</b><span className="cursor-pointer underline opacity-70 ml-2" onClick={()=>newQ()}>Tiếp →</span></>}
       </FeedbackBar>
-      <Card><CardTitle>Bàn phím — Oct 3 &amp; 4</CardTitle>
-        <Piano startOctave={3} numOctaves={2} highlighted={answered?q.sns:[]} /></Card>
+      <Card><CardTitle>Bàn phím — Oct 3–5</CardTitle>
+        <Piano startOctave={3} numOctaves={3} highlighted={answered?q.sns:[]} /></Card>
     </div>
   )
 }

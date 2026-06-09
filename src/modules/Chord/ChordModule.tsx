@@ -58,14 +58,14 @@ export function ChordModule() {
   return (
     <div className="flex flex-col gap-4 animate-[fadeUp_.32s_ease_both]">
       <div>
-        <div className="font-display italic text-[1rem] text-[#8a7d6a]">Nhận diện Hợp âm</div>
+        <div className="font-display italic text-[1rem] t-dim">Nhận diện Hợp âm</div>
         <ModuleTabs options={[{value:'basic' as Mode,label:'Major/Minor'},{value:'triads' as Mode,label:'Tam âm'},{value:'all' as Mode,label:'Tất cả'}]} value={mode} onChange={m=>{setMode(m);newQ(m)}} />
       </div>
       <Card>
         <div className="flex items-center justify-center gap-5 py-3">
           <PlayBtn onClick={() => playChord(q.cns, false)} isPlaying={isPlaying} />
           <div className="flex-1 text-center">
-            <div className="font-display text-4xl text-[rgba(201,168,76,.18)]">{answered ? NOTE_DISPLAY[q.ri] : '?'}</div>
+            <div className="font-display text-4xl t-lbl">{answered ? NOTE_DISPLAY[q.ri] : '?'}</div>
             <div className="mt-2 flex gap-2 justify-center">
               <Btn size="sm" onClick={() => playChord(q.cns, false)}>🎹 Đồng thời</Btn>
               <Btn size="sm" onClick={() => playChord(q.cns, true)}>🎵 Arpeggio</Btn>
@@ -76,7 +76,7 @@ export function ChordModule() {
           {opts.map(k => {
             const state = !answered?'idle': k===q.ck?'reveal': k===selected?'wrong':'idle'
             return <OptionBtn key={k} state={state} onClick={()=>answer(k)} disabled={answered}>
-              <div className="text-[.85rem] text-[#e8c96d]">{CHORDS[k].name}</div>
+              <div className="text-[.85rem] t-lbl">{CHORDS[k].name}</div>
               <div className="mt-0.5 text-[.68rem]">{CHORDS[k].vn}</div>
             </OptionBtn>
           })}
@@ -87,8 +87,8 @@ export function ChordModule() {
           :ok?<>✓ Đúng! <b>{NOTE_DISPLAY[q.ri]} {q.ch.name}</b><span className="cursor-pointer underline opacity-70 ml-2" onClick={()=>newQ()}>Tiếp →</span></>
           :<>✗ Sai. Đáp án: <b>{NOTE_DISPLAY[q.ri]} {q.ch.name}</b><span className="cursor-pointer underline opacity-70 ml-2" onClick={()=>newQ()}>Tiếp →</span></>}
       </FeedbackBar>
-      <Card><CardTitle>Bàn phím — Oct 3 &amp; 4</CardTitle>
-        <Piano startOctave={3} numOctaves={2} highlighted={answered?q.cns:[]} /></Card>
+      <Card><CardTitle>Bàn phím — Oct 3–5</CardTitle>
+        <Piano startOctave={3} numOctaves={3} highlighted={answered?q.cns:[]} /></Card>
     </div>
   )
 }

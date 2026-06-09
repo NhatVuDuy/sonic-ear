@@ -1,55 +1,39 @@
 import { useEffect } from 'react'
 import { useStore, Stage } from '@/store'
+import { THEMES } from '@/theme'
 import { IntervalModule } from '@/modules/Interval'
 import { ChordModule } from '@/modules/Chord'
 import { ScaleModule } from '@/modules/Scale'
 import { NoteModule } from '@/modules/Note'
 import { FreePianoModule } from '@/modules/FreePiano'
-import { Piano } from '@/components/Piano'
-import { Card, CardTitle, StatBox, ProgressBar, Btn } from '@/components/UI'
-import { SCALES, buildScaleNotes } from '@/theory'
-import { audio } from '@/audio/engine'
+import { ProgressBar, StatBox } from '@/components/UI'
 
-const STAGES: { id: Stage; num: string; label: string }[] = [
-  { id: 'interval', num: '1', label: 'QUÃNG NHẠC' },
-  { id: 'chord',    num: '2', label: 'HỢP ÂM' },
-  { id: 'scale',    num: '3', label: 'ĐIỆU THỨC' },
-  { id: 'note',     num: '4', label: 'NỐT ĐƠN' },
-  { id: 'piano',    num: '★', label: 'ĐÀN TỰ DO' },
-]
-
-const INFO: Record<Stage, string> = {
-  interval: '<b style="color:#c9a84c">Quãng nhạc</b> = khoảng cách cao độ.<br><br><b>P5</b> → "Star Wars"<br><b>P4</b> → "Here Comes the Bride"<br><b>M3</b> → "When the Saints"<br><b>m3</b> → "Smoke on the Water"<br><b>P8</b> → "Somewhere Over the Rainbow"',
-  chord:    '<b style="color:#c9a84c">Hợp âm</b> — nốt vang cùng nhau.<br><br><b>Major:</b> vui, sáng<br><b>Minor:</b> buồn, trầm<br><b>Dom7:</b> căng, muốn giải quyết<br><b>Maj7:</b> mơ màng, jazz<br><b>Dim:</b> u ám, bất an',
-  scale:    '<b style="color:#c9a84c">Điệu thức</b> = công thức khoảng cách nốt.<br><br><b>Major</b>: W-W-H-W-W-W-H (sáng)<br><b>Minor</b>: buồn, trầm<br><b>Harmonic Minor</b>: bí ẩn<br><b>Blues</b>: "xé lòng"<br><b>Pentatonic</b>: pop/rock',
-  note:     '<b style="color:#c9a84c">Cảm âm tuyệt đối vs tương đối</b><br><br><b>Tương đối</b>: nhận nốt dựa trên nốt tham chiếu.<br><br><b>Tuyệt đối</b>: nghe ra tên nốt ngay — bẩm sinh hoặc luyện rất lâu.',
-  piano:    '<b style="color:#c9a84c">Đàn tự do</b><br><br>Nhấn phím để chơi và lắng nghe sự khác biệt giữa Major và Minor.',
-}
-
-function demoScale(type: string) {
-  const ns = buildScaleNotes(0, SCALES[type].steps, 4)
-  audio.playScale(ns, 0.2)
-}
+const STAGE_ORDER: Stage[] = ['interval', 'chord', 'scale', 'note', 'piano']
 
 export function PracticePage() {
-  const { correct, wrong, streak, score, xp, level, currentStage, setStage } = useStore()
+  const { correct, wrong, streak, xp, level, currentStage, setStage, themeId } = useStore()
   const total = correct + wrong
   const acc = total ? Math.round(correct / total * 100) + '%' : '—'
   const need = level * 100
+  const theme = THEMES[themeId]
+  const ma = theme.moduleAccents[currentStage]
 
-  // Keyboard shortcuts
+  const cssVars = {
+    '--accent':      ma.accent,
+    '--accent-dark': ma.accentDark,
+    '--accent-glow': ma.glow,
+  } as React.CSSProperties
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement) return
       if (e.code === 'Space' || e.key === ' ') {
         e.preventDefault()
-        const pb = document.querySelector<HTMLButtonElement>('[data-playbtn]')
-        pb?.click()
+        document.querySelector<HTMLButtonElement>('[data-playbtn]')?.click()
       }
       if (e.key >= '1' && e.key <= '8') {
-        const i = parseInt(e.key) - 1
         const opts = document.querySelectorAll<HTMLButtonElement>('.ob-key:not([disabled])')
-        opts[i]?.click()
+        opts[parseInt(e.key) - 1]?.click()
       }
     }
     window.addEventListener('keydown', handler)
@@ -57,74 +41,103 @@ export function PracticePage() {
   }, [])
 
   return (
-    <div className="flex flex-col" style={{ minHeight: 'calc(100vh - 110px)' }}>
-      {/* Stage tabs */}
-      <div className="flex overflow-x-auto border-b border-white/[0.08] bg-[rgba(13,11,8,.55)] px-8">
-        {STAGES.map(s => (
-          <button
-            key={s.id}
-            onClick={() => setStage(s.id)}
-            className={`flex-shrink-0 border-b-2 px-5 py-3 font-mono text-[.75rem] tracking-[.12em] transition-all duration-300 cursor-pointer select-none ${
-              s.id === currentStage
-                ? 'border-[#c9a84c] text-[#c9a84c]'
-                : 'border-transparent text-[#8a7d6a] hover:text-[#c9a84c]'
-            }`}
+    <div className="flex flex-col" style={{ minHeight: 'calc(100vh - 110px)', ...cssVars }}>
+
+      {/* ── Gamification bar ────────────────────────────────────────── */}
+      <div
+        className="flex flex-wrap items-center gap-2 px-4 py-2.5 sm:px-6"
+        style={{
+          background: 'var(--t-gamebar-bg)',
+          borderBottom: 'var(--t-gamebar-border)',
+          boxShadow: '0 1px 6px rgba(0,0,0,0.05)',
+        }}
+      >
+        <div
+          className="flex items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-[.72rem] font-bold"
+          style={{ background: 'var(--t-stars-bg)', color: 'var(--t-stars-text)' }}
+        >
+          ⭐ {correct} sao
+        </div>
+
+        {streak > 1 && (
+          <div
+            className="flex items-center gap-1 rounded-full px-3 py-1.5 font-mono text-[.72rem] font-bold animate-bounce-in"
+            style={{ background: 'rgba(255,107,107,0.15)', color: '#dc2626' }}
           >
-            <span className={`mr-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full text-[.58rem] text-[#0d0b08] ${s.id===currentStage?'bg-[#c9a84c]':'bg-[#7a6230]'}`}>{s.num}</span>
-            {s.label}
-          </button>
-        ))}
+            🔥 {streak} liên tiếp!
+          </div>
+        )}
+
+        <div className="ml-auto flex items-center gap-2.5">
+          <div className="font-display text-[.85rem] font-bold" style={{ color: 'var(--accent-dark, var(--accent))' }}>
+            Lv.{level}
+          </div>
+          <div className="hidden sm:block w-28">
+            <ProgressBar value={xp} max={need} />
+          </div>
+          <div className="font-mono text-[.62rem]" style={{ color: 'var(--t-xp-text, #666)' }}>{xp}/{need} XP</div>
+        </div>
       </div>
 
-      {/* Main layout */}
-      <div className="flex flex-1">
-        {/* Left panel */}
-        <div className="flex w-72 min-w-[240px] flex-col gap-4 border-r border-white/[0.08] bg-[rgba(18,15,11,.65)] p-5">
-          <div>
-            <div className="font-display mb-2 italic text-[#8a7d6a]">Tiến độ hôm nay</div>
-            <div className="flex gap-2">
-              <StatBox value={correct} label="ĐÚNG" />
-              <StatBox value={wrong} label="SAI" />
-              <StatBox value={acc} label="CHÍNH XÁC" />
-            </div>
-            <div className="mt-2.5">
-              <div className="mb-1 flex justify-between font-mono text-[.64rem] text-[#8a7d6a]">
-                <span>Level {level}</span>
-                <span>{xp} / {need} XP</span>
-              </div>
-              <ProgressBar value={xp} max={need} />
-            </div>
-          </div>
-
-          <Card>
-            <CardTitle>Lý thuyết</CardTitle>
-            <div
-              className="text-[.83rem] leading-relaxed text-[#8a7d6a]"
-              dangerouslySetInnerHTML={{ __html: INFO[currentStage] }}
-            />
-          </Card>
-
-          <Card>
-            <CardTitle>Bàn phím tham chiếu</CardTitle>
-            <Piano startOctave={3} numOctaves={2} small />
-            <div className="mt-2.5 flex gap-1.5">
-              {['major','minor','blues'].map(t => (
-                <Btn key={t} size="sm" className="flex-1" onClick={() => demoScale(t)}>
-                  ▶ {t.charAt(0).toUpperCase()+t.slice(1)}
-                </Btn>
-              ))}
-            </div>
-          </Card>
+      {/* ── Stage selector ──────────────────────────────────────────── */}
+      <div
+        className="px-4 pt-4 pb-2 sm:px-6"
+        style={{ background: 'var(--t-stage-bar-bg)' }}
+      >
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+          {STAGE_ORDER.map(id => {
+            const a = theme.moduleAccents[id]
+            const active = id === currentStage
+            return (
+              <button
+                key={id}
+                onClick={() => setStage(id)}
+                className="flex-shrink-0 flex flex-col items-center gap-1.5 rounded-2xl px-4 py-3 transition-all duration-200 cursor-pointer active:scale-95 hover:scale-[1.04]"
+                style={active ? {
+                  background: a.accent,
+                  color: 'white',
+                  boxShadow: `0 4px 18px ${a.glow}, 0 2px 0 rgba(0,0,0,0.10)`,
+                  minWidth: '88px',
+                } : {
+                  background: 'var(--t-stage-btn-bg)',
+                  color: 'var(--t-stage-btn-color)',
+                  border: 'var(--t-stage-btn-border)',
+                  minWidth: '88px',
+                }}
+              >
+                <span className="text-[1.5rem] leading-none">{a.emoji}</span>
+                <span className="font-mono text-[0.6rem] tracking-wider font-bold leading-tight text-center">{a.label}</span>
+              </button>
+            )
+          })}
         </div>
+      </div>
 
-        {/* Right panel */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {currentStage === 'interval' && <IntervalModule />}
-          {currentStage === 'chord'    && <ChordModule />}
-          {currentStage === 'scale'    && <ScaleModule />}
-          {currentStage === 'note'     && <NoteModule />}
-          {currentStage === 'piano'    && <FreePianoModule />}
-        </div>
+      {/* ── Quick stats ─────────────────────────────────────────────── */}
+      <div
+        className="flex items-center gap-2 px-4 py-2 sm:px-6"
+        style={{
+          background: 'var(--t-stats-bar-bg)',
+          borderBottom: '1px solid rgba(0,0,0,0.05)',
+        }}
+      >
+        <StatBox value={correct} label="ĐÚNG" />
+        <StatBox value={wrong}   label="SAI" />
+        <StatBox value={acc}     label="%" />
+      </div>
+
+      {/* ── Module content ─────────────────────────────────────────── */}
+      <div
+        className="flex-1 overflow-y-auto p-4 sm:p-6"
+        style={{
+          background: `radial-gradient(ellipse 80% 40% at 50% 0%, ${ma.subtle} 0%, transparent 70%)`,
+        }}
+      >
+        {currentStage === 'interval' && <IntervalModule />}
+        {currentStage === 'chord'    && <ChordModule />}
+        {currentStage === 'scale'    && <ScaleModule />}
+        {currentStage === 'note'     && <NoteModule />}
+        {currentStage === 'piano'    && <FreePianoModule />}
       </div>
     </div>
   )

@@ -48,13 +48,13 @@ export function NoteModule() {
   return (
     <div className="flex flex-col gap-4 animate-[fadeUp_.32s_ease_both]">
       <div>
-        <div className="font-display italic text-[1rem] text-[#8a7d6a]">Nhận diện Nốt đơn</div>
-        <p className="mt-1 text-[.82rem] text-[#8a7d6a]">Nghe một nốt và chọn tên nốt đúng</p>
+        <div className="font-display italic text-[1rem] t-dim">Nhận diện Nốt đơn</div>
+        <p className="mt-1 text-[.82rem] t-dim">Nghe một nốt và chọn tên nốt đúng</p>
       </div>
       <Card className="text-center">
         <div className="flex flex-col items-center gap-3 py-3">
           <PlayBtn onClick={() => play(q.ns)} isPlaying={isPlaying} />
-          <div className="font-display text-[4.5rem] leading-none" style={{ color: answered ? (ok ? 'var(--color-ok)' : 'var(--color-bad)') : 'rgba(201,168,76,.12)' }}>
+          <div className="font-display text-[4.5rem] leading-none" style={{ color: answered ? (ok ? 'var(--color-ok)' : 'var(--color-bad)') : 'var(--t-dim, #9ca3af)' }}>
             {answered ? q.correct : '?'}
           </div>
         </div>
@@ -62,7 +62,7 @@ export function NoteModule() {
           {opts.map(n => {
             const state = !answered?'idle': n===q.correct?'reveal': n===selected?'wrong':'idle'
             return <OptionBtn key={n} state={state} onClick={()=>answer(n)} disabled={answered}>
-              <div className="font-display text-[1.05rem] text-[#e8c96d]">{n}</div>
+              <div className="font-display text-[1.05rem] t-lbl">{n}</div>
             </OptionBtn>
           })}
         </div>
@@ -73,7 +73,7 @@ export function NoteModule() {
           :<>✗ Sai. Đây là nốt <b>{q.correct}</b><span className="cursor-pointer underline opacity-70 ml-2" onClick={newQ}>Tiếp →</span></>}
       </FeedbackBar>
       <Card><CardTitle>Bàn phím — nhấn để so sánh</CardTitle>
-        <Piano startOctave={3} numOctaves={2} highlighted={answered?[q.ns]:[]} /></Card>
+        <Piano startOctave={3} numOctaves={3} highlighted={answered?[q.ns]:[]} /></Card>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { ThemeId } from '@/theme'
 
 export type Stage = 'interval' | 'chord' | 'scale' | 'note' | 'piano'
 export type Difficulty = 'basic' | 'medium' | 'all'
@@ -25,12 +26,14 @@ interface AppState {
   // UI state
   currentStage: Stage
   difficulty: Record<Stage, Difficulty>
+  themeId: ThemeId
 
   // Actions
   onCorrect: (xp?: number) => void
   onWrong: () => void
   setStage: (s: Stage) => void
   setDifficulty: (stage: Stage, d: Difficulty) => void
+  setTheme: (id: ThemeId) => void
   addHistory: (r: SessionResult) => void
   reset: () => void
 }
@@ -46,6 +49,7 @@ export const useStore = create<AppState>()(
       level: 1,
       history: [],
       currentStage: 'interval',
+      themeId: 'kids' as ThemeId,
       difficulty: {
         interval: 'basic',
         chord: 'basic',
@@ -73,6 +77,8 @@ export const useStore = create<AppState>()(
 
       setStage: (s) => set({ currentStage: s }),
 
+      setTheme: (id) => set({ themeId: id }),
+
       setDifficulty: (stage, d) =>
         set({ difficulty: { ...get().difficulty, [stage]: d } }),
 
@@ -88,6 +94,7 @@ export const useStore = create<AppState>()(
         correct: s.correct, wrong: s.wrong, streak: s.streak,
         score: s.score, xp: s.xp, level: s.level,
         history: s.history, difficulty: s.difficulty,
+        themeId: s.themeId,
       }),
     }
   )
