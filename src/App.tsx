@@ -152,13 +152,6 @@ function Header() {
           : '0 2px 18px rgba(255,107,107,0.08)',
       }}
     >
-      {/* Build version — always visible, anchored top-right */}
-      <span
-        className="absolute right-3 top-1 font-mono text-[.52rem] opacity-40 pointer-events-none select-none"
-        style={{ color: 'var(--t-dim)', letterSpacing: '0.04em' }}
-      >
-        {__BUILD_INFO__}
-      </span>
       <div className="flex items-center gap-3">
         <div
           className="flex h-11 w-11 items-center justify-center rounded-2xl text-[1.5rem]"
@@ -173,7 +166,10 @@ function Header() {
           >
             {isDark ? 'SonicEar' : <span className="grad-text">SonicEar</span>}
           </div>
-          <div className="font-mono text-[.53rem] tracking-[.15em] t-dim">🎹 LUYỆN CẢM ÂM VUI VẺ</div>
+          <div className="font-mono text-[.53rem] tracking-[.15em] t-dim">
+            🎹 LUYỆN CẢM ÂM VUI VẺ
+            <span className="ml-2 opacity-60">{__BUILD_INFO__}</span>
+          </div>
         </div>
       </div>
 

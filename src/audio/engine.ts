@@ -95,15 +95,25 @@ class AudioEngine {
 
     if (typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
       try {
+        // iOS session upgrade: feed a near-silent tap into a MediaStream, then
+        // play it via an HTMLAudioElement at el.volume = 1.
+        // iOS evaluates el.volume (not the signal amplitude) to decide session
+        // category — el.volume=1 triggers AVAudioSessionCategoryPlayback, which
+        // causes the whole page (including ac.destination in Path A) to ignore
+        // the hardware mute switch. The tap gain is 0.001 so the stream path
+        // is acoustically inaudible; the user only hears Path A.
+        const tap = ac.createGain()
+        tap.gain.value = 0.001
+        this.masterGain.connect(tap)
         const msOut = (ac as any).createMediaStreamDestination() as MediaStreamAudioDestinationNode
-        this.masterGain.connect(msOut)
+        tap.connect(msOut)
         const el = document.createElement('audio') as HTMLAudioElement
         el.srcObject = msOut.stream
         el.setAttribute('playsinline', '')
         el.setAttribute('webkit-playsinline', '')
         el.loop = true
-        el.volume = 0.001   // nearly inaudible — Path A carries the actual audio
-        el.style.cssText = 'position:absolute;width:0;height:0;pointer-events:none'
+        el.volume = 1.0   // must be 1 — iOS uses this to gate session upgrade
+        el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px'
         document.body.appendChild(el)
         el.play().catch(() => {})
       } catch (_) {}
