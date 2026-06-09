@@ -8,7 +8,7 @@ import { THEMES, THEME_IDS, applyTheme } from '@/theme'
 function ThemeSwitcher() {
   const { themeId, setTheme } = useStore()
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-0.5">
       {THEME_IDS.map(id => {
         const t = THEMES[id]
         const active = id === themeId
@@ -19,12 +19,12 @@ function ThemeSwitcher() {
             onClick={() => { setTheme(id); applyTheme(id) }}
             className="flex items-center justify-center rounded-full transition-all duration-200 active:scale-90 hover:scale-110 cursor-pointer"
             style={{
-              width: 32,
-              height: 32,
-              fontSize: '1.1rem',
-              opacity: active ? 1 : 0.45,
-              boxShadow: active ? '0 0 0 2px var(--accent, #ff6b6b), 0 0 0 4px rgba(255,255,255,0.15)' : 'none',
-              background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
+              width: 30,
+              height: 30,
+              fontSize: '1rem',
+              opacity: active ? 1 : 0.4,
+              boxShadow: active ? '0 0 0 2px var(--accent, #ff6b6b), 0 0 8px var(--accent-glow, rgba(255,107,107,0.4))' : 'none',
+              background: active ? 'rgba(255,255,255,0.12)' : 'transparent',
             }}
           >
             {t.emoji}
@@ -39,39 +39,45 @@ function ThemeSwitcher() {
 function FloatingDeco() {
   const { themeId } = useStore()
   const isDark = THEMES[themeId].isDark
-  const decos = [
-    { symbol: '♩', top: '8%',  left: '5%',  size: '2rem',   color: isDark ? '#c9a84c' : '#ff6b6b', delay: '0s',   dur: '4s'   },
-    { symbol: '♪', top: '15%', left: '88%', size: '1.8rem', color: isDark ? '#c9a84c' : '#ff9f43', delay: '0.5s', dur: '3.5s' },
-    { symbol: '⭐', top: '58%', left: '3%',  size: '1.5rem', color: isDark ? '#e8c96d' : '#ffd93d', delay: '1s',   dur: '5s'   },
-    { symbol: '♫', top: '72%', left: '92%', size: '2rem',   color: isDark ? '#c9a84c' : '#4d96ff', delay: '1.5s', dur: '4.2s' },
-    { symbol: '🎵', top: '38%', left: '95%', size: '1.4rem', color: isDark ? '#e8c96d' : '#a29bfe', delay: '0.8s', dur: '3.8s' },
-    { symbol: '✨', top: '82%', left: '10%', size: '1.5rem', color: isDark ? '#c9a84c' : '#fd79a8', delay: '2s',   dur: '4.5s' },
-    { symbol: '♬', top: '25%', left: '2%',  size: '1.6rem', color: isDark ? '#e8c96d' : '#26de81', delay: '0.3s', dur: '3.2s' },
-    { symbol: '🌟', top: '48%', left: '96%', size: '1.4rem', color: isDark ? '#c9a84c' : '#ffd93d', delay: '2.5s', dur: '4.8s' },
-  ]
 
-  const blobOpacity = isDark ? 0.08 : 0.06
-  const blob1 = isDark ? `rgba(201,168,76,${blobOpacity * 10})` : `rgba(255,107,107,${blobOpacity * 10})`
-  const blob2 = isDark ? `rgba(201,168,76,${blobOpacity * 8})`  : `rgba(77,150,255,${blobOpacity * 10})`
-  const blob3 = isDark ? `rgba(201,168,76,${blobOpacity * 6})`  : `rgba(255,211,61,${blobOpacity * 8})`
+  const symbols = isDark
+    ? ['♩','♪','⭐','♫','♬','✦','𝄞','♩']
+    : ['♩','♪','⭐','♫','🎵','✨','♬','🌟']
+
+  const palette = {
+    kids:    ['#ff6b6b','#ff9f43','#ffd93d','#4d96ff','#a29bfe','#fd79a8','#26de81','#ffd93d'],
+    classic: ['#c9a84c','#e8c96d','#c9a84c','#e8c96d','#c9a84c','#e8c96d','#c9a84c','#e8c96d'],
+    studio:  ['#a855f7','#c084fc','#22d3ee','#a855f7','#c084fc','#a855f7','#22d3ee','#c084fc'],
+    rainbow: ['#f472b6','#fb923c','#facc15','#34d399','#22d3ee','#a78bfa','#e879f9','#fb923c'],
+    neon:    ['#f43f5e','#f97316','#fbbf24','#10b981','#38bdf8','#a855f7','#f43f5e','#f97316'],
+  }[themeId]
+
+  const positions = [
+    { top: '8%',  left: '5%',  size: '2rem',   delay: '0s',   dur: '4s'   },
+    { top: '15%', left: '88%', size: '1.8rem',  delay: '0.5s', dur: '3.5s' },
+    { top: '58%', left: '3%',  size: '1.5rem',  delay: '1s',   dur: '5s'   },
+    { top: '72%', left: '92%', size: '2rem',    delay: '1.5s', dur: '4.2s' },
+    { top: '38%', left: '95%', size: '1.4rem',  delay: '0.8s', dur: '3.8s' },
+    { top: '82%', left: '10%', size: '1.5rem',  delay: '2s',   dur: '4.5s' },
+    { top: '25%', left: '2%',  size: '1.6rem',  delay: '0.3s', dur: '3.2s' },
+    { top: '48%', left: '96%', size: '1.4rem',  delay: '2.5s', dur: '4.8s' },
+  ]
 
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       <div className="absolute inset-0" style={{ background: 'var(--t-bg, #fffdf5)', transition: 'background 0.35s ease' }} />
-
-      {decos.map((d, i) => (
+      {positions.map((p, i) => (
         <div
           key={i}
           className="animate-float absolute select-none"
-          style={{ top: d.top, left: d.left, fontSize: d.size, color: d.color, animationDelay: d.delay, animationDuration: d.dur, opacity: isDark ? 0.35 : 0.55 }}
+          style={{ top: p.top, left: p.left, fontSize: p.size, color: palette[i], animationDelay: p.delay, animationDuration: p.dur, opacity: isDark ? 0.3 : 0.55 }}
         >
-          {d.symbol}
+          {symbols[i]}
         </div>
       ))}
-
-      <div className="absolute rounded-full" style={{ width: 600, height: 400, top: '-5%', left: '-5%',   background: blob1, filter: 'blur(80px)' }} />
-      <div className="absolute rounded-full" style={{ width: 500, height: 400, bottom: '-5%', right: '-5%', background: blob2, filter: 'blur(80px)' }} />
-      <div className="absolute rounded-full" style={{ width: 400, height: 400, top: '40%', left: '40%',   background: blob3, filter: 'blur(80px)' }} />
+      <div className="absolute rounded-full" style={{ width: 600, height: 400, top: '-5%',    left: '-5%',   background: `${palette[0]}14`, filter: 'blur(80px)' }} />
+      <div className="absolute rounded-full" style={{ width: 500, height: 400, bottom: '-5%', right: '-5%',  background: `${palette[3]}11`, filter: 'blur(80px)' }} />
+      <div className="absolute rounded-full" style={{ width: 400, height: 400, top: '40%',    left: '40%',   background: `${palette[6]}0d`, filter: 'blur(80px)' }} />
     </div>
   )
 }
