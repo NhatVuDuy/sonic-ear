@@ -8,9 +8,9 @@ const { version } = JSON.parse(readFileSync('./package.json', 'utf-8'))
 const buildDate = new Date().toISOString().slice(0, 10)
 
 export default defineConfig({
-  base: '/demo3/',
+  base: '/demo4/',
   define: {
-    __BUILD_INFO__: JSON.stringify(`v${version}-demo3 · ${buildDate}`),
+    __BUILD_INFO__: JSON.stringify(`v${version}-demo4 · ${buildDate}`),
   },
   plugins: [react(), tailwindcss()],
   resolve: {

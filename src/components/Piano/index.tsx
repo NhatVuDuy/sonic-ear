@@ -2,8 +2,17 @@ import { useCallback } from 'react'
 import { NOTE_NAMES, IS_BLACK } from '@/theory'
 import { audio } from '@/audio/engine'
 
-// Highlighted keys inherit the module accent via CSS vars.
-// color-mix blends accent with white for the top of the gradient.
+// Kids theme: each white key has its own note-color (Do=red, Re=orange…).
+// All white keys show their note name for easy learning.
+const NOTE_COLORS: Record<string, { bg: string; text: string }> = {
+  'C':  { bg: 'rgba(255,107,107,0.13)', text: '#ff6b6b' },
+  'D':  { bg: 'rgba(255,159,67,0.13)',  text: '#ff9f43' },
+  'E':  { bg: 'rgba(38,222,129,0.13)',  text: '#26de81' },
+  'F':  { bg: 'rgba(77,150,255,0.13)',  text: '#4d96ff' },
+  'G':  { bg: 'rgba(162,155,254,0.13)', text: '#a29bfe' },
+  'A':  { bg: 'rgba(253,121,168,0.13)', text: '#fd79a8' },
+  'B':  { bg: 'rgba(255,211,61,0.18)',  text: '#d4a010' },
+}
 
 interface PianoProps {
   startOctave?: number
@@ -20,10 +29,10 @@ export function Piano({
   highlighted = [],
   onKeyPress,
 }: PianoProps) {
-  const wW = small ? 32 : 40
-  const kH = small ? 74 : 120
-  const bW = small ? 20 : 25
-  const bH = small ? 46 : 74
+  const wW = small ? 32 : 42
+  const kH = small ? 74 : 130
+  const bW = small ? 20 : 26
+  const bH = small ? 46 : 80
 
   const allNotes: { name: string; octave: number; s: number; black: boolean }[] = []
   for (let oct = startOctave; oct < startOctave + numOctaves; oct++) {
@@ -52,6 +61,7 @@ export function Piano({
         {whites.map((n) => {
           const ns = n.name + n.octave
           const isHl = highlighted.includes(ns)
+          const nc = NOTE_COLORS[n.name] ?? { bg: 'rgba(0,0,0,0.05)', text: '#888' }
           return (
             <div
               key={ns}
@@ -61,30 +71,33 @@ export function Piano({
               onMouseLeave={() => handleRelease(ns)}
               onTouchStart={e => { e.preventDefault(); handleAttack(ns) }}
               onTouchEnd={() => handleRelease(ns)}
-              className="relative z-10 flex-shrink-0 cursor-pointer rounded-b-lg border border-black/20 transition-[background,box-shadow] duration-[60ms]"
+              className="relative z-10 flex-shrink-0 cursor-pointer rounded-b-xl border-2 transition-[background,box-shadow] duration-[60ms]"
               style={{
                 width: wW,
                 height: kH,
+                borderColor: isHl
+                  ? 'var(--accent, #ff6b6b)'
+                  : 'rgba(200,185,165,0.55)',
                 background: isHl
-                  ? 'linear-gradient(180deg, color-mix(in srgb, var(--accent, #a855f7) 20%, white) 0%, color-mix(in srgb, var(--accent, #a855f7) 70%, white) 60%, var(--accent, #a855f7) 100%)'
-                  : 'linear-gradient(180deg,#ede8df 0%,#f6f2eb 100%)',
+                  ? 'linear-gradient(180deg, color-mix(in srgb, var(--accent, #ff6b6b) 25%, white) 0%, var(--accent, #ff6b6b) 100%)'
+                  : `linear-gradient(180deg, ${nc.bg} 0%, rgba(255,255,255,0.3) 40%, white 100%)`,
                 boxShadow: isHl
-                  ? '0 4px 5px rgba(0,0,0,.4),inset 0 -2px 3px rgba(0,0,0,.07),0 0 16px var(--accent-glow, rgba(168,85,247,0.5))'
-                  : '0 4px 5px rgba(0,0,0,.4),inset 0 -2px 3px rgba(0,0,0,.07)',
+                  ? '0 4px 6px rgba(0,0,0,.12), 0 0 18px var(--accent-glow, rgba(255,107,107,0.5))'
+                  : '0 3px 5px rgba(0,0,0,.10)',
               }}
             >
-              {n.name === 'C' && (
-                <span
-                  className="pointer-events-none absolute bottom-1.5 left-0 right-0 text-center font-mono text-[0.58rem] font-bold"
-                  style={{
-                    color: isHl
-                      ? 'color-mix(in srgb, var(--accent, #7c3aed) 90%, black)'
-                      : 'rgba(0,0,0,0.5)',
-                  }}
-                >
-                  C{n.octave}
-                </span>
-              )}
+              {/* Note label — all white keys, colored by note */}
+              <span
+                className="pointer-events-none absolute bottom-1.5 left-0 right-0 text-center font-mono font-bold"
+                style={{
+                  fontSize: small ? '0.48rem' : '0.58rem',
+                  color: isHl ? 'rgba(255,255,255,0.92)' : nc.text,
+                  textShadow: isHl ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
+                }}
+              >
+                {/* Show octave number only on C keys */}
+                {n.name}{n.name === 'C' ? n.octave : ''}
+              </span>
             </div>
           )
         })}
@@ -108,17 +121,17 @@ export function Piano({
               onMouseLeave={() => handleRelease(ns)}
               onTouchStart={e => { e.preventDefault(); handleAttack(ns) }}
               onTouchEnd={() => handleRelease(ns)}
-              className="absolute top-0 z-20 cursor-pointer rounded-b-md transition-[background,box-shadow] duration-[60ms]"
+              className="absolute top-0 z-20 cursor-pointer rounded-b-lg transition-[background,box-shadow] duration-[60ms]"
               style={{
                 left,
                 width: bW,
                 height: bH,
                 background: isHl
-                  ? 'linear-gradient(180deg, color-mix(in srgb, var(--accent, #a855f7) 55%, black) 0%, color-mix(in srgb, var(--accent, #a855f7) 85%, black) 100%)'
-                  : 'linear-gradient(180deg,#1e1a14 0%,#141008 100%)',
+                  ? `linear-gradient(180deg, color-mix(in srgb, var(--accent, #ff6b6b) 60%, black) 0%, var(--accent, #ff6b6b) 100%)`
+                  : 'linear-gradient(180deg,#3a3030 0%,#221a1a 100%)',
                 boxShadow: isHl
-                  ? '2px 4px 8px rgba(0,0,0,.75),inset 0 -2px 3px rgba(255,255,255,.04),0 0 12px var(--accent-glow, rgba(168,85,247,0.6))'
-                  : '2px 4px 8px rgba(0,0,0,.75),inset 0 -2px 3px rgba(255,255,255,.04)',
+                  ? '2px 4px 8px rgba(0,0,0,.5), 0 0 12px var(--accent-glow, rgba(255,107,107,0.6))'
+                  : '2px 4px 8px rgba(0,0,0,.5)',
               }}
             />
           )

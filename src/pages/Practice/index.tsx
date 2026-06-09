@@ -5,69 +5,24 @@ import { ChordModule } from '@/modules/Chord'
 import { ScaleModule } from '@/modules/Scale'
 import { NoteModule } from '@/modules/Note'
 import { FreePianoModule } from '@/modules/FreePiano'
-import { Piano } from '@/components/Piano'
-import { Card, CardTitle, StatBox, ProgressBar, Btn } from '@/components/UI'
-import { SCALES, buildScaleNotes } from '@/theory'
-import { audio } from '@/audio/engine'
+import { ProgressBar, StatBox } from '@/components/UI'
 
-// Each module has one accent color that permeates every element in that section.
-// The color is injected as CSS custom properties on the wrapper div.
+// Kids theme: no sidebar, single-column layout, bright stage cards.
 const MODULE_THEMES: Record<Stage, {
-  accent: string   // solid color
-  glow:   string   // rgba for glow/shadow
-  subtle: string   // very transparent tint for bg
-  label:  string   // display name
+  accent: string
+  glow:   string
+  subtle: string
+  label:  string
   emoji:  string
-  info:   string   // theory text (with accent-colored bold)
 }> = {
-  interval: {
-    accent: '#f43f5e',
-    glow:   'rgba(244,63,94,0.42)',
-    subtle: 'rgba(244,63,94,0.07)',
-    label:  'QUÃNG NHẠC',
-    emoji:  '↕',
-    info:   '<b style="color:#fda4af">Quãng nhạc</b> = khoảng cách cao độ.<br><br><b>P5</b> → "Star Wars"<br><b>P4</b> → "Here Comes the Bride"<br><b>M3</b> → "When the Saints"<br><b>m3</b> → "Smoke on the Water"<br><b>P8</b> → "Somewhere Over the Rainbow"',
-  },
-  chord: {
-    accent: '#f97316',
-    glow:   'rgba(249,115,22,0.42)',
-    subtle: 'rgba(249,115,22,0.07)',
-    label:  'HỢP ÂM',
-    emoji:  '♪',
-    info:   '<b style="color:#fdba74">Hợp âm</b> — nốt vang cùng nhau.<br><br><b>Major:</b> vui, sáng<br><b>Minor:</b> buồn, trầm<br><b>Dom7:</b> căng, muốn giải quyết<br><b>Maj7:</b> mơ màng, jazz<br><b>Dim:</b> u ám, bất an',
-  },
-  scale: {
-    accent: '#10b981',
-    glow:   'rgba(16,185,129,0.42)',
-    subtle: 'rgba(16,185,129,0.07)',
-    label:  'ĐIỆU THỨC',
-    emoji:  '🎼',
-    info:   '<b style="color:#6ee7b7">Điệu thức</b> = công thức khoảng cách nốt.<br><br><b>Major</b>: W-W-H-W-W-W-H (sáng)<br><b>Minor</b>: buồn, trầm<br><b>Harmonic Minor</b>: bí ẩn<br><b>Blues</b>: "xé lòng"<br><b>Pentatonic</b>: pop/rock',
-  },
-  note: {
-    accent: '#38bdf8',
-    glow:   'rgba(56,189,248,0.42)',
-    subtle: 'rgba(56,189,248,0.07)',
-    label:  'NỐT ĐƠN',
-    emoji:  '♩',
-    info:   '<b style="color:#7dd3fc">Cảm âm tuyệt đối vs tương đối</b><br><br><b>Tương đối</b>: nhận nốt dựa trên nốt tham chiếu.<br><br><b>Tuyệt đối</b>: nghe ra tên nốt ngay — bẩm sinh hoặc luyện rất lâu.',
-  },
-  piano: {
-    accent: '#a855f7',
-    glow:   'rgba(168,85,247,0.42)',
-    subtle: 'rgba(168,85,247,0.07)',
-    label:  'ĐÀN TỰ DO',
-    emoji:  '🎹',
-    info:   '<b style="color:#d8b4fe">Đàn tự do</b><br><br>Nhấn phím để chơi và lắng nghe sự khác biệt giữa Major và Minor.',
-  },
+  interval: { accent: '#ff6b6b', glow: 'rgba(255,107,107,0.45)', subtle: 'rgba(255,107,107,0.07)', label: 'Quãng Nhạc', emoji: '🎯' },
+  chord:    { accent: '#ff9f43', glow: 'rgba(255,159,67,0.45)',  subtle: 'rgba(255,159,67,0.07)',  label: 'Hợp Âm',    emoji: '🎸' },
+  scale:    { accent: '#26de81', glow: 'rgba(38,222,129,0.45)',  subtle: 'rgba(38,222,129,0.07)',  label: 'Điệu Thức', emoji: '🎼' },
+  note:     { accent: '#4d96ff', glow: 'rgba(77,150,255,0.45)',  subtle: 'rgba(77,150,255,0.07)',  label: 'Nốt Đơn',   emoji: '🎵' },
+  piano:    { accent: '#a29bfe', glow: 'rgba(162,155,254,0.45)', subtle: 'rgba(162,155,254,0.07)', label: 'Đàn Tự Do', emoji: '🎹' },
 }
 
 const STAGE_ORDER: Stage[] = ['interval', 'chord', 'scale', 'note', 'piano']
-
-function demoScale(type: string) {
-  const ns = buildScaleNotes(0, SCALES[type].steps, 4)
-  audio.playScale(ns, 0.2)
-}
 
 export function PracticePage() {
   const { correct, wrong, streak, xp, level, currentStage, setStage } = useStore()
@@ -81,150 +36,108 @@ export function PracticePage() {
       if (e.target instanceof HTMLInputElement) return
       if (e.code === 'Space' || e.key === ' ') {
         e.preventDefault()
-        const pb = document.querySelector<HTMLButtonElement>('[data-playbtn]')
-        pb?.click()
+        document.querySelector<HTMLButtonElement>('[data-playbtn]')?.click()
       }
       if (e.key >= '1' && e.key <= '8') {
-        const i = parseInt(e.key) - 1
         const opts = document.querySelectorAll<HTMLButtonElement>('.ob-key:not([disabled])')
-        opts[i]?.click()
+        opts[parseInt(e.key) - 1]?.click()
       }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [])
 
-  // Inject CSS vars for the current module — every child reads var(--accent)
-  const cssVars = {
-    '--accent':      theme.accent,
-    '--accent-glow': theme.glow,
-  } as React.CSSProperties
+  const cssVars = { '--accent': theme.accent, '--accent-glow': theme.glow } as React.CSSProperties
 
   return (
     <div className="flex flex-col" style={{ minHeight: 'calc(100vh - 110px)', ...cssVars }}>
 
-      {/* ── Stage tabs ─────────────────────────────────────── */}
+      {/* ── Gamification bar ──────────────────────────────────────────── */}
       <div
-        className="flex items-center overflow-x-auto border-b px-3 py-0 sm:px-5"
-        style={{ background: 'rgba(12,9,16,0.85)', backdropFilter: 'blur(20px)', borderColor: 'rgba(255,255,255,0.06)' }}
+        className="flex flex-wrap items-center gap-2 px-4 py-2.5 sm:px-6"
+        style={{ background: 'rgba(255,253,245,0.92)', borderBottom: '2px solid rgba(0,0,0,0.05)', boxShadow: '0 1px 6px rgba(0,0,0,0.04)' }}
       >
-        {STAGE_ORDER.map(id => {
-          const t = MODULE_THEMES[id]
-          const active = id === currentStage
-          return (
-            <button
-              key={id}
-              onClick={() => setStage(id)}
-              className="relative flex flex-shrink-0 items-center gap-1.5 px-4 py-3.5 font-mono text-[.68rem] tracking-wider transition-all duration-200 cursor-pointer select-none"
-              style={active ? { color: t.accent } : { color: '#475569' }}
-            >
-              <span className="text-[.8rem]">{t.emoji}</span>
-              {t.label}
-              {/* Accent bottom border on active */}
-              {active && (
-                <span
-                  className="absolute inset-x-0 bottom-0 h-[2px] rounded-t-full"
-                  style={{ background: t.accent }}
-                />
-              )}
-            </button>
-          )
-        })}
-      </div>
-
-      {/* ── Mobile stats bar ──────────────────────────────── */}
-      <div className="md:hidden flex items-center gap-3 border-b px-4 py-2.5" style={{ background: 'rgba(12,9,16,0.7)', borderColor: 'rgba(255,255,255,0.05)' }}>
-        <div className="flex flex-1 gap-2">
-          <StatBox value={correct} label="ĐÚNG" />
-          <StatBox value={wrong} label="SAI" />
-          <StatBox value={acc} label="%" />
+        {/* Stars */}
+        <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-[.72rem] font-bold"
+          style={{ background: 'rgba(255,211,61,0.2)', color: '#b45309' }}>
+          ⭐ {correct} sao
         </div>
-        <div className="w-20 flex-shrink-0">
-          <div className="mb-1.5 flex justify-between font-mono text-[.56rem] text-slate-600">
-            <span>Lv.{level}</span><span>{xp}/{need}</span>
+
+        {/* Streak — only shown when active */}
+        {streak > 1 && (
+          <div
+            className="flex items-center gap-1 rounded-full px-3 py-1.5 font-mono text-[.72rem] font-bold animate-bounce-in"
+            style={{ background: 'rgba(255,107,107,0.15)', color: '#dc2626' }}
+          >
+            🔥 {streak} liên tiếp!
           </div>
-          <ProgressBar value={xp} max={need} />
+        )}
+
+        {/* Level + XP */}
+        <div className="ml-auto flex items-center gap-2.5">
+          <div className="font-display text-[.85rem] font-bold" style={{ color: theme.accent }}>
+            Lv.{level}
+          </div>
+          <div className="hidden sm:block w-28">
+            <ProgressBar value={xp} max={need} />
+          </div>
+          <div className="font-mono text-[.62rem]" style={{ color: '#aaa' }}>{xp}/{need} XP</div>
         </div>
       </div>
 
-      {/* ── Main layout ───────────────────────────────────── */}
-      <div className="flex flex-1 flex-col md:flex-row">
-
-        {/* Sidebar — desktop only */}
-        <aside
-          className="hidden md:flex w-[260px] min-w-[220px] flex-col gap-4 p-5"
-          style={{
-            background: 'rgba(10,7,15,0.75)',
-            backdropFilter: 'blur(20px)',
-            borderRight: '1px solid rgba(255,255,255,0.05)',
-            /* Left accent strip */
-            borderLeft: `3px solid ${theme.accent}`,
-          }}
-        >
-          {/* Progress card */}
-          <div className="relative overflow-hidden rounded-2xl p-4" style={{
-            background: `radial-gradient(ellipse at 0% 0%, ${theme.subtle} 0%, rgba(255,255,255,0.02) 60%)`,
-            border: '1px solid rgba(255,255,255,0.07)',
-          }}>
-            <div className="mb-2.5 font-mono text-[.62rem] tracking-[.14em]" style={{ color: theme.accent }}>
-              ✦ TIẾN ĐỘ HÔM NAY
-            </div>
-            <div className="flex gap-2">
-              <StatBox value={correct} label="ĐÚNG" />
-              <StatBox value={wrong} label="SAI" />
-              <StatBox value={acc} label="ACC" />
-            </div>
-            <div className="mt-3 space-y-1.5">
-              <div className="flex justify-between font-mono text-[.6rem]" style={{ color: '#475569' }}>
-                <span style={{ color: theme.accent }}>Level {level}</span>
-                <span>{xp} / {need} XP</span>
-              </div>
-              <ProgressBar value={xp} max={need} />
-            </div>
-            {streak > 1 && (
-              <div className="mt-2.5 flex items-center gap-1.5 rounded-xl bg-amber-500/10 border border-amber-400/15 px-2.5 py-1.5">
-                <span>🔥</span>
-                <span className="font-mono text-[.62rem] text-amber-400">{streak} đúng liên tiếp</span>
-              </div>
-            )}
-          </div>
-
-          {/* Theory */}
-          <Card>
-            <CardTitle>Lý thuyết</CardTitle>
-            <div
-              className="text-[.81rem] leading-relaxed text-slate-500"
-              dangerouslySetInnerHTML={{ __html: theme.info }}
-            />
-          </Card>
-
-          {/* Reference piano */}
-          <Card>
-            <CardTitle>Bàn phím tham chiếu</CardTitle>
-            <Piano startOctave={3} numOctaves={3} small />
-            <div className="mt-2.5 flex gap-1.5">
-              {['major', 'minor', 'blues'].map(t => (
-                <Btn key={t} size="sm" className="flex-1" onClick={() => demoScale(t)}>
-                  ▶ {t[0].toUpperCase() + t.slice(1)}
-                </Btn>
-              ))}
-            </div>
-          </Card>
-        </aside>
-
-        {/* Main content — subtle accent glow at top */}
-        <div
-          className="flex-1 overflow-y-auto p-4 md:p-6"
-          style={{
-            background: `radial-gradient(ellipse 70% 35% at 50% 0%, ${theme.subtle} 0%, transparent 70%)`,
-          }}
-        >
-          {currentStage === 'interval' && <IntervalModule />}
-          {currentStage === 'chord'    && <ChordModule />}
-          {currentStage === 'scale'    && <ScaleModule />}
-          {currentStage === 'note'     && <NoteModule />}
-          {currentStage === 'piano'    && <FreePianoModule />}
+      {/* ── Stage selector — large emoji cards ────────────────────────── */}
+      <div className="px-4 pt-4 pb-2 sm:px-6" style={{ background: 'rgba(255,253,245,0.75)' }}>
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+          {STAGE_ORDER.map(id => {
+            const t = MODULE_THEMES[id]
+            const active = id === currentStage
+            return (
+              <button
+                key={id}
+                onClick={() => setStage(id)}
+                className="flex-shrink-0 flex flex-col items-center gap-1.5 rounded-2xl px-4 py-3 transition-all duration-200 cursor-pointer active:scale-95 hover:scale-[1.04]"
+                style={active ? {
+                  background: t.accent,
+                  color: 'white',
+                  boxShadow: `0 4px 18px ${t.glow}, 0 2px 0 rgba(0,0,0,0.10)`,
+                  minWidth: '88px',
+                } : {
+                  background: 'white',
+                  color: '#6b7280',
+                  border: '2px solid #e5e7eb',
+                  minWidth: '88px',
+                }}
+              >
+                <span className="text-[1.5rem] leading-none">{t.emoji}</span>
+                <span className="font-mono text-[0.6rem] tracking-wider font-bold leading-tight text-center">{t.label}</span>
+              </button>
+            )
+          })}
         </div>
+      </div>
+
+      {/* ── Quick stats ───────────────────────────────────────────────── */}
+      <div
+        className="flex items-center gap-2 px-4 py-2 sm:px-6"
+        style={{ background: 'rgba(255,253,245,0.6)', borderBottom: '1px solid rgba(0,0,0,0.05)' }}
+      >
+        <StatBox value={correct} label="ĐÚNG" />
+        <StatBox value={wrong}   label="SAI" />
+        <StatBox value={acc}     label="%" />
+      </div>
+
+      {/* ── Module content — full width, no sidebar ───────────────────── */}
+      <div
+        className="flex-1 overflow-y-auto p-4 sm:p-6"
+        style={{
+          background: `radial-gradient(ellipse 80% 40% at 50% 0%, ${theme.subtle} 0%, transparent 70%)`,
+        }}
+      >
+        {currentStage === 'interval' && <IntervalModule />}
+        {currentStage === 'chord'    && <ChordModule />}
+        {currentStage === 'scale'    && <ScaleModule />}
+        {currentStage === 'note'     && <NoteModule />}
+        {currentStage === 'piano'    && <FreePianoModule />}
       </div>
     </div>
   )
