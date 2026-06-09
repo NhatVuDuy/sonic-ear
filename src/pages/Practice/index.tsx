@@ -9,17 +9,18 @@ import { ProgressBar, StatBox } from '@/components/UI'
 
 // Kids theme: no sidebar, single-column layout, bright stage cards.
 const MODULE_THEMES: Record<Stage, {
-  accent: string
-  glow:   string
-  subtle: string
-  label:  string
-  emoji:  string
+  accent:     string   // bright — used for button/card backgrounds
+  accentDark: string   // darkened — used for text on light bg (WCAG AA ≥ 4.5:1 on white)
+  glow:       string
+  subtle:     string
+  label:      string
+  emoji:      string
 }> = {
-  interval: { accent: '#ff6b6b', glow: 'rgba(255,107,107,0.45)', subtle: 'rgba(255,107,107,0.07)', label: 'Quãng Nhạc', emoji: '🎯' },
-  chord:    { accent: '#ff9f43', glow: 'rgba(255,159,67,0.45)',  subtle: 'rgba(255,159,67,0.07)',  label: 'Hợp Âm',    emoji: '🎸' },
-  scale:    { accent: '#26de81', glow: 'rgba(38,222,129,0.45)',  subtle: 'rgba(38,222,129,0.07)',  label: 'Điệu Thức', emoji: '🎼' },
-  note:     { accent: '#4d96ff', glow: 'rgba(77,150,255,0.45)',  subtle: 'rgba(77,150,255,0.07)',  label: 'Nốt Đơn',   emoji: '🎵' },
-  piano:    { accent: '#a29bfe', glow: 'rgba(162,155,254,0.45)', subtle: 'rgba(162,155,254,0.07)', label: 'Đàn Tự Do', emoji: '🎹' },
+  interval: { accent: '#ff6b6b', accentDark: '#c92a2a', glow: 'rgba(255,107,107,0.45)', subtle: 'rgba(255,107,107,0.07)', label: 'Quãng Nhạc', emoji: '🎯' },
+  chord:    { accent: '#ff9f43', accentDark: '#c05c00', glow: 'rgba(255,159,67,0.45)',  subtle: 'rgba(255,159,67,0.07)',  label: 'Hợp Âm',    emoji: '🎸' },
+  scale:    { accent: '#26de81', accentDark: '#099268', glow: 'rgba(38,222,129,0.45)',  subtle: 'rgba(38,222,129,0.07)',  label: 'Điệu Thức', emoji: '🎼' },
+  note:     { accent: '#4d96ff', accentDark: '#1971c2', glow: 'rgba(77,150,255,0.45)',  subtle: 'rgba(77,150,255,0.07)',  label: 'Nốt Đơn',   emoji: '🎵' },
+  piano:    { accent: '#a29bfe', accentDark: '#6741d9', glow: 'rgba(162,155,254,0.45)', subtle: 'rgba(162,155,254,0.07)', label: 'Đàn Tự Do', emoji: '🎹' },
 }
 
 const STAGE_ORDER: Stage[] = ['interval', 'chord', 'scale', 'note', 'piano']
@@ -47,7 +48,11 @@ export function PracticePage() {
     return () => window.removeEventListener('keydown', handler)
   }, [])
 
-  const cssVars = { '--accent': theme.accent, '--accent-glow': theme.glow } as React.CSSProperties
+  const cssVars = {
+    '--accent':      theme.accent,
+    '--accent-dark': theme.accentDark,
+    '--accent-glow': theme.glow,
+  } as React.CSSProperties
 
   return (
     <div className="flex flex-col" style={{ minHeight: 'calc(100vh - 110px)', ...cssVars }}>
@@ -75,7 +80,7 @@ export function PracticePage() {
 
         {/* Level + XP */}
         <div className="ml-auto flex items-center gap-2.5">
-          <div className="font-display text-[.85rem] font-bold" style={{ color: theme.accent }}>
+          <div className="font-display text-[.85rem] font-bold" style={{ color: theme.accentDark }}>
             Lv.{level}
           </div>
           <div className="hidden sm:block w-28">

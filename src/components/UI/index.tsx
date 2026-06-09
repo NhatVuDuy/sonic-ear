@@ -24,7 +24,7 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
 export function CardTitle({ children }: { children: ReactNode }) {
   return (
     <div className="mb-3 font-display text-[1rem] font-bold"
-      style={{ color: 'var(--accent, #ff6b6b)' }}>
+      style={{ color: 'var(--accent-dark, var(--accent, #c92a2a))' }}>
       {children}
     </div>
   )
@@ -203,7 +203,7 @@ export function StatBox({ value, label }: { value: string | number; label: strin
       border: '2px solid #f3f4f6',
       boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
     }}>
-      <div className="font-display text-2xl font-bold" style={{ color: 'var(--accent, #ff6b6b)' }}>
+      <div className="font-display text-2xl font-bold" style={{ color: 'var(--accent-dark, var(--accent, #c92a2a))' }}>
         {value}
       </div>
       <div className="mt-0.5 font-mono text-[0.6rem] tracking-[.12em] text-gray-400">{label}</div>

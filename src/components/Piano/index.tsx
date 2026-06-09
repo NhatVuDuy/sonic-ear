@@ -5,13 +5,13 @@ import { audio } from '@/audio/engine'
 // Kids theme: each white key has its own note-color (Do=red, Re=orange…).
 // All white keys show their note name for easy learning.
 const NOTE_COLORS: Record<string, { bg: string; text: string }> = {
-  'C':  { bg: 'rgba(255,107,107,0.13)', text: '#ff6b6b' },
-  'D':  { bg: 'rgba(255,159,67,0.13)',  text: '#ff9f43' },
-  'E':  { bg: 'rgba(38,222,129,0.13)',  text: '#26de81' },
-  'F':  { bg: 'rgba(77,150,255,0.13)',  text: '#4d96ff' },
-  'G':  { bg: 'rgba(162,155,254,0.13)', text: '#a29bfe' },
-  'A':  { bg: 'rgba(253,121,168,0.13)', text: '#fd79a8' },
-  'B':  { bg: 'rgba(255,211,61,0.18)',  text: '#d4a010' },
+  'C':  { bg: 'rgba(255,107,107,0.13)', text: '#c92a2a' },
+  'D':  { bg: 'rgba(255,159,67,0.13)',  text: '#c05c00' },
+  'E':  { bg: 'rgba(38,222,129,0.13)',  text: '#099268' },
+  'F':  { bg: 'rgba(77,150,255,0.13)',  text: '#1971c2' },
+  'G':  { bg: 'rgba(162,155,254,0.13)', text: '#6741d9' },
+  'A':  { bg: 'rgba(253,121,168,0.13)', text: '#c2255c' },
+  'B':  { bg: 'rgba(255,211,61,0.18)',  text: '#966a00' },
 }
 
 interface PianoProps {

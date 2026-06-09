@@ -40,7 +40,7 @@
   .font-display { font-family: var(--font-display); }
   .font-mono    { font-family: var(--font-mono); }
   .text-dim     { color: var(--color-dim); }
-  .grad-text    { background: linear-gradient(135deg,#ff6b6b,#ff9f43,#ffd93d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .grad-text    { background: linear-gradient(135deg,#c92a2a,#d4660a,#966a00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 }
 
 /* ── Animations ─────────────────────────────────────────── */
