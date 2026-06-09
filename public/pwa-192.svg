@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="40" fill="#1a0a2e"/>
+  <rect x="32" y="96" width="128" height="64" rx="8" fill="#2d1b4e"/>
+  <!-- white keys -->
+  <rect x="36" y="100" width="16" height="56" rx="3" fill="#f5f0ff"/>
+  <rect x="55" y="100" width="16" height="56" rx="3" fill="#f5f0ff"/>
+  <rect x="74" y="100" width="16" height="56" rx="3" fill="#f5f0ff"/>
+  <rect x="93" y="100" width="16" height="56" rx="3" fill="#f5f0ff"/>
+  <rect x="112" y="100" width="16" height="56" rx="3" fill="#f5f0ff"/>
+  <rect x="131" y="100" width="16" height="56" rx="3" fill="#f5f0ff"/>
+  <rect x="150" y="100" width="6" height="56" rx="3" fill="#f5f0ff"/>
+  <!-- black keys -->
+  <rect x="47" y="100" width="12" height="34" rx="3" fill="#1a0a2e"/>
+  <rect x="66" y="100" width="12" height="34" rx="3" fill="#1a0a2e"/>
+  <rect x="104" y="100" width="12" height="34" rx="3" fill="#1a0a2e"/>
+  <rect x="123" y="100" width="12" height="34" rx="3" fill="#1a0a2e"/>
+  <rect x="142" y="100" width="12" height="34" rx="3" fill="#1a0a2e"/>
+  <!-- music note -->
+  <circle cx="72" cy="62" r="10" fill="#a855f7"/>
+  <rect x="81" y="28" width="6" height="38" rx="3" fill="#a855f7"/>
+  <rect x="81" y="28" width="24" height="6" rx="3" fill="#a855f7"/>
+  <!-- glow -->
+  <circle cx="72" cy="62" r="16" fill="#a855f7" opacity="0.2"/>
+</svg>

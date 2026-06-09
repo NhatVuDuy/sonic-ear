@@ -1,8 +1,9 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { PracticePage } from '@/pages/Practice'
 import { useStore } from '@/store'
 import { THEMES, THEME_IDS, applyTheme } from '@/theme'
+import { analytics } from '@/analytics'
 
 // ─── Theme switcher pills ────────────────────────────────────────────────
 function ThemeSwitcher() {
@@ -136,6 +137,62 @@ function ThemeInit() {
   return null
 }
 
+// ─── PWA install banner ───────────────────────────────────────────────────
+function PwaInstallBanner() {
+  const [prompt, setPrompt] = useState<any>(null)
+  const { themeId } = useStore()
+  const isDark = THEMES[themeId].isDark
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault()
+      setPrompt(e)
+      analytics.pwaInstall('prompted')
+    }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  if (!prompt) return null
+
+  return (
+    <div
+      className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-2xl px-4 py-3 shadow-xl"
+      style={{
+        background: isDark ? 'rgba(30,15,50,0.95)' : 'rgba(255,255,255,0.97)',
+        border: '1.5px solid var(--accent)',
+        backdropFilter: 'blur(16px)',
+        minWidth: 260,
+      }}
+    >
+      <span style={{ fontSize: '1.4rem' }}>📲</span>
+      <div className="flex-1">
+        <div className="text-sm font-semibold" style={{ color: 'var(--t-text)' }}>Cài SonicEar</div>
+        <div className="text-xs" style={{ color: 'var(--t-dim)' }}>Dùng offline, không cần mạng</div>
+      </div>
+      <button
+        className="rounded-xl px-3 py-1.5 text-xs font-bold transition-opacity active:opacity-70"
+        style={{ background: 'var(--accent)', color: '#fff' }}
+        onClick={async () => {
+          prompt.prompt()
+          const { outcome } = await prompt.userChoice
+          analytics.pwaInstall(outcome === 'accepted' ? 'accepted' : 'dismissed')
+          setPrompt(null)
+        }}
+      >
+        Cài
+      </button>
+      <button
+        className="text-lg leading-none opacity-40 hover:opacity-70"
+        style={{ color: 'var(--t-text)' }}
+        onClick={() => { analytics.pwaInstall('dismissed'); setPrompt(null) }}
+      >
+        ×
+      </button>
+    </div>
+  )
+}
+
 export default function App() {
   return (
     <HashRouter>
@@ -148,6 +205,7 @@ export default function App() {
           <Route path="/practice" element={<PracticePage />} />
         </Routes>
       </div>
+      <PwaInstallBanner />
     </HashRouter>
   )
 }

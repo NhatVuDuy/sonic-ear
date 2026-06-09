@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { ThemeId } from '@/theme'
+import { analytics } from '@/analytics'
 
 export type Stage = 'interval' | 'chord' | 'scale' | 'note' | 'piano'
 export type Difficulty = 'basic' | 'medium' | 'all'
@@ -59,7 +60,7 @@ export const useStore = create<AppState>()(
       },
 
       onCorrect: (xp = 12) => {
-        const { streak, score, level } = get()
+        const { streak, score, level, currentStage, difficulty } = get()
         const bonus = streak > 2 ? 5 : 0
         const newXp = get().xp + xp
         const needed = level * 100
@@ -71,13 +72,19 @@ export const useStore = create<AppState>()(
           xp: leveled ? newXp - needed : newXp,
           level: leveled ? level + 1 : level,
         })
+        analytics.answerSubmitted({ module: currentStage, correct: true, difficulty: difficulty[currentStage], streak: streak + 1 })
+        if (leveled) analytics.levelUp(level + 1, newXp)
       },
 
-      onWrong: () => set({ wrong: get().wrong + 1, streak: 0 }),
+      onWrong: () => {
+        const { currentStage, difficulty, streak } = get()
+        set({ wrong: get().wrong + 1, streak: 0 })
+        analytics.answerSubmitted({ module: currentStage, correct: false, difficulty: difficulty[currentStage], streak })
+      },
 
-      setStage: (s) => set({ currentStage: s }),
+      setStage: (s) => { set({ currentStage: s }); analytics.stageChanged(s) },
 
-      setTheme: (id) => set({ themeId: id }),
+      setTheme: (id) => { set({ themeId: id }); analytics.themeChanged(id) },
 
       setDifficulty: (stage, d) =>
         set({ difficulty: { ...get().difficulty, [stage]: d } }),
