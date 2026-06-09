@@ -14,7 +14,6 @@ class AudioEngine {
   private reverbGain!: GainNode
   private reverbNode!: ConvolverNode
   private voices: Map<string, Voice> = new Map()
-  private _iosSpeakerUnlocked = false
 
   private getAC(): AudioContext {
     if (!this.ac) {
@@ -74,6 +73,22 @@ class AudioEngine {
     this.reverbNode = ac.createConvolver()
     this.reverbNode.buffer = buf
     this.reverbNode.connect(this.reverbGain)
+
+    // iOS speaker unlock ─────────────────────────────────────────────────
+    // Web Audio API defaults to AVAudioSessionCategoryAmbient on iOS:
+    // audio routes to the earpiece and is silenced by the mute switch.
+    // createMediaElementSource() BRIDGES an <audio> element into the
+    // AudioContext graph. iOS then unifies both into
+    // AVAudioSessionCategoryPlayback — external speaker, mute switch ignored.
+    // This must run inside buildChain() (i.e. within a user gesture) to work.
+    try {
+      const el = new Audio()
+      // minimal silent WAV: 44100 Hz, 16-bit mono, 1 sample = 0
+      el.src = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQIAAAAAAA=='
+      el.loop = true
+      ac.createMediaElementSource(el).connect(ac.destination)
+      el.play().catch(() => {})
+    } catch (_) {}
   }
 
   // Inner scheduling — must only be called when ac.state === 'running'
@@ -152,22 +167,6 @@ class AudioEngine {
   // MUST be called synchronously inside a user-gesture handler on iOS.
   warmUp() {
     this.getAC()
-    this._unlockIOSSpeaker()
-  }
-
-  // iOS Safari routes Web Audio API through AVAudioSessionCategoryAmbient by
-  // default — audio comes out of the earpiece and is silenced by the mute switch.
-  // Playing any <audio> element inside a user gesture upgrades the session to
-  // AVAudioSessionCategoryPlayback, which routes to the external speaker and
-  // ignores the mute switch — exactly what YouTube does.
-  private _unlockIOSSpeaker() {
-    if (this._iosSpeakerUnlocked) return
-    this._iosSpeakerUnlocked = true
-    // 1-frame silent WAV (44100 Hz, 16-bit mono, 1 sample = 0)
-    const el = new Audio()
-    el.src = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQIAAAAAAA=='
-    el.volume = 0
-    el.play().catch(() => {})
   }
 
   playNote(ns: string, duration = 1.8, velocity = 0.78, delay = 0) {
