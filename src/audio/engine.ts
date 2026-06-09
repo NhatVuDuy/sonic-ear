@@ -43,7 +43,6 @@ class AudioEngine {
     const ac = this.ac!
     this.masterGain = ac.createGain()
     this.masterGain.gain.value = 0.82
-    this.masterGain.connect(ac.destination)
 
     this.compressor = ac.createDynamicsCompressor()
     this.compressor.threshold.value = -16
@@ -75,20 +74,36 @@ class AudioEngine {
     this.reverbNode.connect(this.reverbGain)
 
     // iOS speaker unlock ─────────────────────────────────────────────────
-    // Web Audio API defaults to AVAudioSessionCategoryAmbient on iOS:
-    // audio routes to the earpiece and is silenced by the mute switch.
-    // createMediaElementSource() BRIDGES an <audio> element into the
-    // AudioContext graph. iOS then unifies both into
-    // AVAudioSessionCategoryPlayback — external speaker, mute switch ignored.
-    // This must run inside buildChain() (i.e. within a user gesture) to work.
-    try {
-      const el = new Audio()
-      // minimal silent WAV: 44100 Hz, 16-bit mono, 1 sample = 0
-      el.src = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQIAAAAAAA=='
-      el.loop = true
-      ac.createMediaElementSource(el).connect(ac.destination)
-      el.play().catch(() => {})
-    } catch (_) {}
+    // Web Audio API runs under AVAudioSessionCategoryAmbient on iOS, which
+    // respects the hardware mute switch and routes to earpiece.
+    // The fix: pipe masterGain → MediaStreamDestination → <audio srcObject>.
+    // HTMLAudioElement uses AVAudioSessionCategoryPlayback — ignores mute,
+    // routes to external speaker. This must happen inside buildChain() so
+    // the <audio>.play() call is within the synchronous user-gesture frame.
+    const isIOS = typeof navigator !== 'undefined' &&
+      /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    if (isIOS && typeof (ac as any).createMediaStreamDestination === 'function') {
+      try {
+        const out = (ac as any).createMediaStreamDestination() as MediaStreamAudioDestinationNode
+        this.masterGain.connect(out)
+        const el = document.createElement('audio') as HTMLAudioElement
+        el.srcObject = out.stream
+        el.setAttribute('playsinline', '')
+        el.setAttribute('webkit-playsinline', '')
+        // Keep element alive but invisible
+        el.style.cssText = 'position:absolute;width:0;height:0;opacity:0;pointer-events:none'
+        document.body.appendChild(el)
+        el.play().catch(() => {
+          // If play() is rejected (e.g. not in gesture frame), fall back to
+          // direct destination so audio still works (but mute switch applies).
+          this.masterGain.connect(ac.destination)
+        })
+      } catch (_) {
+        this.masterGain.connect(ac.destination)
+      }
+    } else {
+      this.masterGain.connect(ac.destination)
+    }
   }
 
   // Inner scheduling — must only be called when ac.state === 'running'
