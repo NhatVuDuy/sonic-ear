@@ -175,7 +175,7 @@ function Header() {
         <div className="mx-1 h-5 w-px opacity-20" style={{ background: 'var(--t-text)' }} />
         <NavBtn icon="🏆" label="Bảng xếp hạng" onClick={() => navigate('/leaderboard')} />
         <AuthBtn />
-        <span className="hidden sm:block font-mono text-[.5rem] t-dim ml-1">{__BUILD_INFO__}</span>
+        <span className="font-mono text-[.5rem] t-dim ml-1">{__BUILD_INFO__}</span>
       </div>
     </header>
   )
