@@ -52,9 +52,15 @@
     background: var(--t-bg, #fffdf5);
     color: var(--t-text, #2d2d2d);
     font-family: var(--font-body);
-    min-height: 100vh;
+    min-height: 100svh;
     overflow-x: hidden;
     transition: background 0.35s ease, color 0.35s ease;
+    /* Prevent content from going under iOS home indicator */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* PWA safe area — push header below notch/status bar */
+  .pwa-header-safe {
+    padding-top: max(env(safe-area-inset-top), 0px);
   }
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-thumb { background: var(--t-scrollbar, #ddd); border-radius: 6px; }

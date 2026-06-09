@@ -139,7 +139,7 @@ function Header() {
 
   return (
     <header
-      className="relative flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4"
+      className="pwa-header-safe relative flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4"
       style={{
         background: 'var(--t-header-bg)',
         backdropFilter: 'blur(20px)',
