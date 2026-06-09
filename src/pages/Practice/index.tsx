@@ -86,7 +86,7 @@ export function PracticePage() {
           <div className="hidden sm:block w-28">
             <ProgressBar value={xp} max={need} />
           </div>
-          <div className="font-mono text-[.62rem]" style={{ color: '#aaa' }}>{xp}/{need} XP</div>
+          <div className="font-mono text-[.62rem]" style={{ color: '#666' }}>{xp}/{need} XP</div>
         </div>
       </div>
 

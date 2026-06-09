@@ -59,7 +59,7 @@ function Header() {
         </div>
         <div>
           <div className="font-display text-[1.45rem] font-bold leading-tight grad-text">SonicEar</div>
-          <div className="font-mono text-[.53rem] tracking-[.15em]" style={{ color: '#bbb' }}>🎹 LUYỆN CẢM ÂM VUI VẺ</div>
+          <div className="font-mono text-[.53rem] tracking-[.15em]" style={{ color: '#888' }}>🎹 LUYỆN CẢM ÂM VUI VẺ</div>
         </div>
       </div>
 
@@ -70,7 +70,7 @@ function Header() {
         >
           ✨ DÀNH CHO BÉ
         </span>
-        <span className="hidden sm:block font-mono text-[.5rem]" style={{ color: '#ccc' }}>{__BUILD_INFO__}</span>
+        <span className="hidden sm:block font-mono text-[.5rem]" style={{ color: '#999' }}>{__BUILD_INFO__}</span>
       </div>
     </header>
   )

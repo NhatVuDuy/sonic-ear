@@ -63,7 +63,7 @@ export function IntervalModule() {
   return (
     <div className="flex flex-col gap-4 animate-[fadeUp_.32s_ease_both]">
       <div>
-        <div className="font-display italic text-[1rem] text-[#a8a4cc]">Nhận diện Quãng</div>
+        <div className="font-display italic text-[1rem] text-gray-600">Nhận diện Quãng</div>
         <ModuleTabs
           options={[
             { value: 'basic' as Mode,  label: 'Cơ bản' },
@@ -81,10 +81,10 @@ export function IntervalModule() {
           <div className="text-center">
             <div className="flex items-center gap-3 justify-center">
               <NoteBubble>{answered ? NOTE_DISPLAY[NOTE_NAMES.indexOf(q.n1.slice(0,-1) as any)] : '?'}</NoteBubble>
-              <span className="text-[#a8a4cc]">→</span>
+              <span className="text-gray-600">→</span>
               <NoteBubble>{answered ? NOTE_DISPLAY[NOTE_NAMES.indexOf(q.n2.replace(/\d/,'') as any)] : '?'}</NoteBubble>
             </div>
-            <p className="mt-2 hidden sm:block font-mono text-[0.7rem] text-[#a8a4cc]">Space = phát lại · 1–{opts.length} = đáp án</p>
+            <p className="mt-2 hidden sm:block font-mono text-[0.7rem] text-gray-600">Space = phát lại · 1–{opts.length} = đáp án</p>
           </div>
         </div>
 
@@ -96,7 +96,7 @@ export function IntervalModule() {
               : 'idle'
             return (
               <OptionBtn key={o.s} state={state} onClick={() => answer(o.s)} disabled={answered}>
-                <div className="text-sm text-[#c7d2fe]">{o.abbr}</div>
+                <div className="text-sm text-[#4338ca]">{o.abbr}</div>
                 <div className="mt-0.5 text-[0.68rem]">{o.vn}</div>
                 {answered && o.s === q.iv.s && o.mnemonic && (
                   <div className="mt-1 text-[0.6rem] opacity-60 italic">{o.mnemonic}</div>

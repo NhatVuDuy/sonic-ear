@@ -2,12 +2,7 @@ import { useCallback } from 'react'
 import { NOTE_NAMES, IS_BLACK } from '@/theory'
 import { audio } from '@/audio/engine'
 
-// Vietnamese solfège names for kids in Vietnam — used as piano key labels
-const SOLFEGE: Record<string, string> = {
-  'C': 'Đô', 'D': 'Rê', 'E': 'Mi', 'F': 'Fa', 'G': 'Sol', 'A': 'La', 'B': 'Si',
-}
-
-// Kids theme: each white key has its own note-color (Đô=red, Rê=orange…).
+// Kids theme: each white key has its own note-color (C=red, D=orange…).
 // All white keys show their note name for easy learning.
 const NOTE_COLORS: Record<string, { bg: string; text: string }> = {
   'C':  { bg: 'rgba(255,107,107,0.13)', text: '#c92a2a' },
@@ -99,7 +94,7 @@ export function Piano({
                   textShadow: isHl ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
                 }}
               >
-                {SOLFEGE[n.name] ?? n.name}{n.name === 'C' ? n.octave : ''}
+                {n.name}{n.name === 'C' ? n.octave : ''}
               </span>
             </div>
           )
