@@ -39,6 +39,21 @@ interface AppState {
   reset: () => void
 }
 
+// Debounced Supabase sync — fires 10s after last answer to batch updates
+let _syncTimer: ReturnType<typeof setTimeout> | null = null
+function scheduleSync() {
+  if (typeof window === 'undefined') return
+  if (_syncTimer) clearTimeout(_syncTimer)
+  _syncTimer = setTimeout(() => {
+    import('@/store/auth').then(({ useAuthStore }) => {
+      const { user, syncStats } = useAuthStore.getState()
+      if (!user) return
+      const { xp, level, correct, wrong } = useStore.getState()
+      syncStats({ total_xp: xp, level, correct, wrong })
+    })
+  }, 10_000)
+}
+
 export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -74,12 +89,14 @@ export const useStore = create<AppState>()(
         })
         analytics.answerSubmitted({ module: currentStage, correct: true, difficulty: difficulty[currentStage], streak: streak + 1 })
         if (leveled) analytics.levelUp(level + 1, newXp)
+        scheduleSync()
       },
 
       onWrong: () => {
         const { currentStage, difficulty, streak } = get()
         set({ wrong: get().wrong + 1, streak: 0 })
         analytics.answerSubmitted({ module: currentStage, correct: false, difficulty: difficulty[currentStage], streak })
+        scheduleSync()
       },
 
       setStage: (s) => { set({ currentStage: s }); analytics.stageChanged(s) },
@@ -89,8 +106,21 @@ export const useStore = create<AppState>()(
       setDifficulty: (stage, d) =>
         set({ difficulty: { ...get().difficulty, [stage]: d } }),
 
-      addHistory: (r) =>
-        set({ history: [r, ...get().history].slice(0, 200) }),
+      addHistory: (r) => {
+        set({ history: [r, ...get().history].slice(0, 200) })
+        // Push session to Supabase asynchronously
+        import('@/store/auth').then(({ useAuthStore }) => {
+          const { user, pushSession } = useAuthStore.getState()
+          if (!user) return
+          pushSession({
+            stage: r.stage,
+            correct: r.correct,
+            wrong: r.wrong,
+            xp_earned: r.correct * 12,
+            duration_ms: r.durationMs,
+          })
+        })
+      },
 
       reset: () =>
         set({ correct: 0, wrong: 0, streak: 0, score: 0, xp: 0, level: 1, history: [] }),

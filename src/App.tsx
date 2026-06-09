@@ -1,7 +1,11 @@
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { PracticePage } from '@/pages/Practice'
+import { ProfilePage } from '@/pages/Profile'
+import { LeaderboardPage } from '@/pages/Leaderboard'
+import { AuthModal, UsernameModal } from '@/components/Auth'
 import { useStore } from '@/store'
+import { useAuthStore } from '@/store/auth'
 import { THEMES, THEME_IDS, applyTheme } from '@/theme'
 import { analytics } from '@/analytics'
 
@@ -83,11 +87,55 @@ function FloatingDeco() {
   )
 }
 
+// ─── Header nav icon button ───────────────────────────────────────────────
+function NavBtn({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      className="flex h-9 w-9 items-center justify-center rounded-2xl text-base transition-all hover:scale-110 active:scale-90"
+      style={{ background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)' }}
+    >
+      {icon}
+    </button>
+  )
+}
+
+// ─── Auth button (login or avatar) ───────────────────────────────────────
+function AuthBtn() {
+  const { user, profile, openAuth } = useAuthStore()
+  const navigate = useNavigate()
+
+  if (user) {
+    const initial = (profile?.username ?? user.email ?? '?')[0].toUpperCase()
+    return (
+      <button
+        onClick={() => navigate('/profile')}
+        title="Hồ sơ"
+        className="flex h-9 w-9 items-center justify-center rounded-2xl text-sm font-bold text-white transition-all hover:scale-110 active:scale-90"
+        style={{ background: 'var(--accent)' }}
+      >
+        {initial}
+      </button>
+    )
+  }
+  return (
+    <button
+      onClick={openAuth}
+      className="flex items-center gap-1.5 rounded-2xl px-3 py-1.5 text-xs font-bold transition-all hover:opacity-80 active:scale-95"
+      style={{ background: 'var(--accent)', color: '#fff' }}
+    >
+      Đăng nhập
+    </button>
+  )
+}
+
 // ─── Header ───────────────────────────────────────────────────────────────
 function Header() {
   const { themeId } = useStore()
   const theme = THEMES[themeId]
   const isDark = theme.isDark
+  const navigate = useNavigate()
 
   return (
     <header
@@ -122,18 +170,23 @@ function Header() {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <ThemeSwitcher />
-        <span className="hidden sm:block font-mono text-[.5rem] t-dim">{__BUILD_INFO__}</span>
+        <div className="mx-1 h-5 w-px opacity-20" style={{ background: 'var(--t-text)' }} />
+        <NavBtn icon="🏆" label="Bảng xếp hạng" onClick={() => navigate('/leaderboard')} />
+        <AuthBtn />
+        <span className="hidden sm:block font-mono text-[.5rem] t-dim ml-1">{__BUILD_INFO__}</span>
       </div>
     </header>
   )
 }
 
-// ─── Theme initializer ────────────────────────────────────────────────────
-function ThemeInit() {
+// ─── Theme + Auth initializer ─────────────────────────────────────────────
+function AppInit() {
   const themeId = useStore(s => s.themeId)
+  const init = useAuthStore(s => s.init)
   useEffect(() => { applyTheme(themeId) }, [themeId])
+  useEffect(() => { init() }, [init])
   return null
 }
 
@@ -196,15 +249,19 @@ function PwaInstallBanner() {
 export default function App() {
   return (
     <HashRouter>
-      <ThemeInit />
+      <AppInit />
       <FloatingDeco />
       <div className="relative z-[2] flex min-h-screen flex-col">
         <Header />
         <Routes>
           <Route path="/" element={<Navigate to="/practice" replace />} />
           <Route path="/practice" element={<PracticePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
         </Routes>
       </div>
+      <AuthModal />
+      <UsernameModal />
       <PwaInstallBanner />
     </HashRouter>
   )
