@@ -152,6 +152,13 @@ function Header() {
           : '0 2px 18px rgba(255,107,107,0.08)',
       }}
     >
+      {/* Build version — always visible, anchored top-right */}
+      <span
+        className="absolute right-3 top-1 font-mono text-[.52rem] opacity-40 pointer-events-none select-none"
+        style={{ color: 'var(--t-dim)', letterSpacing: '0.04em' }}
+      >
+        {__BUILD_INFO__}
+      </span>
       <div className="flex items-center gap-3">
         <div
           className="flex h-11 w-11 items-center justify-center rounded-2xl text-[1.5rem]"
@@ -175,7 +182,6 @@ function Header() {
         <div className="mx-1 h-5 w-px opacity-20" style={{ background: 'var(--t-text)' }} />
         <NavBtn icon="🏆" label="Bảng xếp hạng" onClick={() => navigate('/leaderboard')} />
         <AuthBtn />
-        <span className="font-mono text-[.5rem] t-dim ml-1">{__BUILD_INFO__}</span>
       </div>
     </header>
   )

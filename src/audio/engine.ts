@@ -73,25 +73,36 @@ class AudioEngine {
     this.reverbNode.buffer = buf
     this.reverbNode.connect(this.reverbGain)
 
-    // Primary output — always connected. This guarantees audio works in all
-    // environments including iOS PWA standalone mode.
+    // ── iOS dual-path audio ───────────────────────────────────────────────
+    // iOS Web Audio uses AVAudioSessionCategoryAmbient by default:
+    //   • audio routes to earpiece
+    //   • hardware mute switch silences it
+    //
+    // Fix: run TWO parallel output paths.
+    //
+    // Path A — ac.destination (always active, guarantees audio in PWA mode
+    //   and in Safari when the stream path fails or is unsupported).
+    //
+    // Path B — createMediaStreamDestination → <audio srcObject> at low volume.
+    //   An HTMLAudioElement uses AVAudioSessionCategoryPlayback. iOS detects it
+    //   as active media playback and upgrades the WHOLE PAGE's audio session,
+    //   which means Path A also runs under Playback → external speaker,
+    //   mute switch ignored.
+    //
+    // The media element volume is kept at 0.001 so only Path A is audible.
+    // Both paths carry the same signal but the user only hears Path A.
     this.masterGain.connect(ac.destination)
 
-    // iOS mute-switch bypass ──────────────────────────────────────────────
-    // Web Audio uses AVAudioSessionCategoryAmbient (mute switch silences it,
-    // routes to earpiece). Playing a standalone HTMLAudioElement causes iOS
-    // to upgrade the page's session to AVAudioSessionCategoryPlayback, which
-    // ignores the mute switch and routes to the external speaker.
-    // The element must NOT be connected to Web Audio (no createMediaElementSource)
-    // and volume must be > 0 (iOS ignores truly muted elements for session upgrade).
     if (typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
       try {
-        const el = document.createElement('audio')
+        const msOut = (ac as any).createMediaStreamDestination() as MediaStreamAudioDestinationNode
+        this.masterGain.connect(msOut)
+        const el = document.createElement('audio') as HTMLAudioElement
+        el.srcObject = msOut.stream
         el.setAttribute('playsinline', '')
         el.setAttribute('webkit-playsinline', '')
         el.loop = true
-        el.volume = 0.001
-        el.src = '/silent.wav'
+        el.volume = 0.001   // nearly inaudible — Path A carries the actual audio
         el.style.cssText = 'position:absolute;width:0;height:0;pointer-events:none'
         document.body.appendChild(el)
         el.play().catch(() => {})
