@@ -14,6 +14,7 @@ class AudioEngine {
   private reverbGain!: GainNode
   private reverbNode!: ConvolverNode
   private voices: Map<string, Voice> = new Map()
+  private _iosSpeakerUnlocked = false
 
   private getAC(): AudioContext {
     if (!this.ac) {
@@ -151,6 +152,22 @@ class AudioEngine {
   // MUST be called synchronously inside a user-gesture handler on iOS.
   warmUp() {
     this.getAC()
+    this._unlockIOSSpeaker()
+  }
+
+  // iOS Safari routes Web Audio API through AVAudioSessionCategoryAmbient by
+  // default — audio comes out of the earpiece and is silenced by the mute switch.
+  // Playing any <audio> element inside a user gesture upgrades the session to
+  // AVAudioSessionCategoryPlayback, which routes to the external speaker and
+  // ignores the mute switch — exactly what YouTube does.
+  private _unlockIOSSpeaker() {
+    if (this._iosSpeakerUnlocked) return
+    this._iosSpeakerUnlocked = true
+    // 1-frame silent WAV (44100 Hz, 16-bit mono, 1 sample = 0)
+    const el = new Audio()
+    el.src = 'data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQIAAAAAAA=='
+    el.volume = 0
+    el.play().catch(() => {})
   }
 
   playNote(ns: string, duration = 1.8, velocity = 0.78, delay = 0) {
