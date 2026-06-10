@@ -73,45 +73,54 @@ class AudioEngine {
     this.reverbNode.buffer = buf
     this.reverbNode.connect(this.reverbGain)
 
-    // ── iOS audio routing ─────────────────────────────────────────────────
-    // Web Audio uses AVAudioSessionCategoryAmbient: mute switch silences it,
-    // audio routes to earpiece. HTMLAudioElement uses Playback: ignores mute,
-    // routes to external speaker.
-    //
-    // Safari browser: pipe masterGain → MediaStreamDestination → <audio>.
-    //   The <audio> element at default volume (1.0) plays the actual signal and
-    //   causes iOS to use AVAudioSessionCategoryPlayback for the whole page.
-    //   ac.destination is NOT connected (Playback only — no Ambient fallback needed).
-    //
-    // PWA standalone (WKWebView): srcObject on <audio> silently fails to output
-    //   even though play() resolves, so the stream path produces no sound.
-    //   Use ac.destination directly; mute-switch bypass is not available in PWA.
-    const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)
-    const isPWA = isIOS && (navigator as any).standalone === true
+    // Always connect to ac.destination — primary audio path that works on every
+    // platform (desktop, Android, iOS Safari, iOS PWA standalone).
+    this.masterGain.connect(ac.destination)
 
-    if (isIOS && !isPWA && typeof (ac as any).createMediaStreamDestination === 'function') {
-      // Safari browser path — full mute bypass
+    // ── iOS mute-switch bypass ────────────────────────────────────────────
+    // Web Audio runs under AVAudioSessionCategoryAmbient on iOS by default:
+    //   • audio routes to earpiece (not external speaker)
+    //   • hardware mute switch silences all output
+    //
+    // Fix: play a standalone HTMLAudioElement (NOT routed through Web Audio).
+    // iOS upgrades the page's audio session to AVAudioSessionCategoryPlayback
+    // for HTMLAudioElement playback, which:
+    //   • routes to external speaker
+    //   • ignores the hardware mute switch
+    // The upgrade is page-wide, so ac.destination output also bypasses mute.
+    //
+    // Three details that matter:
+    //   1. el.volume must be > 0 — iOS uses the .volume property (not signal
+    //      amplitude) to gate the session upgrade. volume=0.001 silently fails.
+    //   2. The element must load real audio data (not srcObject) — srcObject
+    //      from MediaStreamDestination silently fails on some iOS versions and
+    //      no longer triggers the session upgrade reliably.
+    //   3. The element must stay in the viewport — iOS pauses off-screen
+    //      <audio> elements as an autoplay heuristic.
+    const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    if (isIOS) {
       try {
-        const out = (ac as any).createMediaStreamDestination() as MediaStreamAudioDestinationNode
-        this.masterGain.connect(out)
         const el = document.createElement('audio') as HTMLAudioElement
-        el.srcObject = out.stream
+        el.src = '/silent.wav'
+        el.loop = true
+        el.volume = 1.0
         el.setAttribute('playsinline', '')
         el.setAttribute('webkit-playsinline', '')
-        // Keep element inside viewport (position:absolute at 0,0) — iOS may
-        // pause off-screen <audio> elements as an autoplay heuristic.
         el.style.cssText = 'position:absolute;top:0;left:0;width:0;height:0;opacity:0;pointer-events:none'
         document.body.appendChild(el)
         el.play().catch(() => {
-          // play() rejected (e.g. gesture frame lost) — fall back so audio still works
-          this.masterGain.connect(ac.destination)
+          // play() rejected — fall back: try srcObject from MediaStreamDestination
+          // (b9fb81f approach). Useful when /silent.wav 404s in some deploys.
+          try {
+            if (typeof (ac as any).createMediaStreamDestination === 'function') {
+              const out = (ac as any).createMediaStreamDestination() as MediaStreamAudioDestinationNode
+              this.masterGain.connect(out)
+              el.srcObject = out.stream
+              el.play().catch(() => {})
+            }
+          } catch (_) {}
         })
-      } catch (_) {
-        this.masterGain.connect(ac.destination)
-      }
-    } else {
-      // PWA standalone or non-iOS — use direct destination
-      this.masterGain.connect(ac.destination)
+      } catch (_) {}
     }
   }
 

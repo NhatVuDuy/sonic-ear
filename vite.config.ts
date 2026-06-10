@@ -18,7 +18,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'pwa-192.svg', 'pwa-512.svg'],
+      includeAssets: ['favicon.svg', 'pwa-192.svg', 'pwa-512.svg', 'silent.wav'],
       manifest: {
         name: 'SonicEar — Luyện Cảm Âm',
         short_name: 'SonicEar',
@@ -37,7 +37,7 @@ export default defineConfig({
       },
       workbox: {
         // Cache all static assets (JS, CSS, fonts, images)
-        globPatterns: ['**/*.{js,css,html,svg,woff2,woff,ttf}'],
+        globPatterns: ['**/*.{js,css,html,svg,woff2,woff,ttf,wav}'],
         runtimeCaching: [
           {
             // Google Fonts — cache-first, 1 year
