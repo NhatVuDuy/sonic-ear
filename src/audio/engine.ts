@@ -98,7 +98,9 @@ class AudioEngine {
         el.srcObject = out.stream
         el.setAttribute('playsinline', '')
         el.setAttribute('webkit-playsinline', '')
-        el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px'
+        // Keep element inside viewport (position:absolute at 0,0) — iOS may
+        // pause off-screen <audio> elements as an autoplay heuristic.
+        el.style.cssText = 'position:absolute;top:0;left:0;width:0;height:0;opacity:0;pointer-events:none'
         document.body.appendChild(el)
         el.play().catch(() => {
           // play() rejected (e.g. gesture frame lost) — fall back so audio still works
