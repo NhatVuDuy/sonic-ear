@@ -6,6 +6,42 @@ interface Voice {
   filter: BiquadFilterNode
 }
 
+// 2-second 8 kHz mono 8-bit PCM WAV with ±1 LSB noise (~-42 dBFS).
+// iOS requires actual signal energy to upgrade the page's audio session to
+// AVAudioSessionCategoryPlayback — a truly-silent file does not trigger it.
+// ±1 LSB is acoustically inaudible (well below ambient noise floor) but iOS
+// detects it as active media playback.
+function makeNearSilentWav(): Blob {
+  const sampleRate = 8000
+  const seconds = 2
+  const n = sampleRate * seconds
+  const buf = new ArrayBuffer(44 + n)
+  const view = new DataView(buf)
+
+  // RIFF header
+  view.setUint32(0, 0x52494646, false)  // 'RIFF'
+  view.setUint32(4, 36 + n, true)        // file size - 8
+  view.setUint32(8, 0x57415645, false)  // 'WAVE'
+  // fmt chunk
+  view.setUint32(12, 0x666d7420, false) // 'fmt '
+  view.setUint32(16, 16, true)           // chunk size
+  view.setUint16(20, 1, true)            // PCM
+  view.setUint16(22, 1, true)            // mono
+  view.setUint32(24, sampleRate, true)   // sample rate
+  view.setUint32(28, sampleRate, true)   // byte rate
+  view.setUint16(32, 1, true)            // block align
+  view.setUint16(34, 8, true)            // bits per sample
+  // data chunk
+  view.setUint32(36, 0x64617461, false) // 'data'
+  view.setUint32(40, n, true)            // chunk size
+
+  // ±1 LSB noise around 128 (zero for 8-bit unsigned PCM)
+  for (let i = 0; i < n; i++) {
+    view.setUint8(44 + i, 128 + (Math.random() > 0.5 ? 1 : -1))
+  }
+  return new Blob([buf], { type: 'audio/wav' })
+}
+
 class AudioEngine {
   private ac: AudioContext | null = null
   private masterGain!: GainNode
@@ -78,48 +114,34 @@ class AudioEngine {
     this.masterGain.connect(ac.destination)
 
     // ── iOS mute-switch bypass ────────────────────────────────────────────
-    // Web Audio runs under AVAudioSessionCategoryAmbient on iOS by default:
-    //   • audio routes to earpiece (not external speaker)
-    //   • hardware mute switch silences all output
+    // Web Audio runs under AVAudioSessionCategoryAmbient on iOS by default,
+    // which respects the hardware mute switch and routes to the earpiece.
+    // Playing an HTMLAudioElement upgrades the WHOLE PAGE's audio session to
+    // AVAudioSessionCategoryPlayback — bypasses the mute switch, routes to
+    // the external speaker. The upgrade applies to ac.destination too.
     //
-    // Fix: play a standalone HTMLAudioElement (NOT routed through Web Audio).
-    // iOS upgrades the page's audio session to AVAudioSessionCategoryPlayback
-    // for HTMLAudioElement playback, which:
-    //   • routes to external speaker
-    //   • ignores the hardware mute switch
-    // The upgrade is page-wide, so ac.destination output also bypasses mute.
-    //
-    // Three details that matter:
-    //   1. el.volume must be > 0 — iOS uses the .volume property (not signal
-    //      amplitude) to gate the session upgrade. volume=0.001 silently fails.
-    //   2. The element must load real audio data (not srcObject) — srcObject
-    //      from MediaStreamDestination silently fails on some iOS versions and
-    //      no longer triggers the session upgrade reliably.
-    //   3. The element must stay in the viewport — iOS pauses off-screen
-    //      <audio> elements as an autoplay heuristic.
+    // Requirements that took iterations to nail down:
+    //   1. The audio element must carry REAL signal energy (not pure zeros).
+    //      A truly silent WAV does NOT trigger the session upgrade — iOS
+    //      checks signal activity, not just the .volume property.
+    //   2. el.volume must be > 0 (and ideally 1.0) — also required.
+    //   3. Use a Blob URL (not a file path) — guarantees no 404 from the
+    //      service worker or deploy path issues.
+    //   4. Keep the element in the viewport — iOS pauses off-screen <audio>
+    //      elements as an autoplay heuristic.
     const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)
     if (isIOS) {
       try {
+        const url = URL.createObjectURL(makeNearSilentWav())
         const el = document.createElement('audio') as HTMLAudioElement
-        el.src = '/silent.wav'
+        el.src = url
         el.loop = true
         el.volume = 1.0
         el.setAttribute('playsinline', '')
         el.setAttribute('webkit-playsinline', '')
         el.style.cssText = 'position:absolute;top:0;left:0;width:0;height:0;opacity:0;pointer-events:none'
         document.body.appendChild(el)
-        el.play().catch(() => {
-          // play() rejected — fall back: try srcObject from MediaStreamDestination
-          // (b9fb81f approach). Useful when /silent.wav 404s in some deploys.
-          try {
-            if (typeof (ac as any).createMediaStreamDestination === 'function') {
-              const out = (ac as any).createMediaStreamDestination() as MediaStreamAudioDestinationNode
-              this.masterGain.connect(out)
-              el.srcObject = out.stream
-              el.play().catch(() => {})
-            }
-          } catch (_) {}
-        })
+        el.play().catch(() => {})
       } catch (_) {}
     }
   }
