@@ -182,19 +182,29 @@ const { correct, wrong, streak, score, xp, level,
 - [x] Free Piano
 - [x] Practice page với layout 2 cột
 - [x] Zustand store + LocalStorage persist
+- [x] 5 themes (kids/classic/studio/rainbow/neon) + ThemeSwitcher
+- [x] PWA — vite-plugin-pwa, service worker, install banner, offline
+- [x] Google Analytics 4 (placeholder G-XXXXXXXXXX, cần thay thật)
+- [x] Supabase auth — email/password + Google OAuth
+- [x] Profile page — hiển thị stats, lịch sử session, signout
+- [x] Leaderboard page — top players by XP
+- [x] Multi-device sync — stats + game sessions lưu Supabase
+- [x] iOS safe area (notch/Dynamic Island)
 
 ### Cần làm tiếp (Phase 2)
-- [ ] **Dashboard page** — biểu đồ accuracy theo ngày, lịch sử luyện, streak calendar
-- [ ] **Spaced Repetition** — SM-2 algorithm, nhớ câu nào user hay sai để ôn lại
-- [ ] **Chord Progression module** — nghe và nhận diện tiến hành I-IV-V-I
+- [ ] **Dashboard/Stats page** — biểu đồ accuracy theo ngày, streak calendar, heatmap
+- [ ] **Spaced Repetition** — SM-2 algorithm, ôn lại câu hay sai
+- [ ] **Chord Progression module** — nghe và nhận diện I-IV-V-I
 - [ ] **Rhythm module** — nhận diện tiết tấu
-- [ ] **Settings page** — cỡ bàn phím, transpose, tempo
-- [ ] **PWA** — service worker, install prompt, offline
+- [ ] **Settings page** — cỡ bàn phím, transpose, volume
+- [ ] **Dictation module** — nghe giai điệu, chép lại nốt
 
 ### Phase 3 (sau)
-- [ ] **Supabase auth + DB** — lưu tiến độ online, sync nhiều thiết bị
 - [ ] **Claude API** — AI feedback cá nhân hoá, phân tích điểm yếu
-- [ ] **Dictation module** — nghe giai điệu, chép lại
+- [ ] **Mobile app** — React Native hoặc Capacitor wrapper
+
+### Backlog / Known bugs
+- Xem `BACKLOG.md`
 
 ---
 
