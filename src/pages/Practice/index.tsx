@@ -7,6 +7,7 @@ import { ScaleModule } from '@/modules/Scale'
 import { NoteModule } from '@/modules/Note'
 import { FreePianoModule } from '@/modules/FreePiano'
 import { ProgressBar, StatBox } from '@/components/UI'
+import { AdBanner } from '@/components/AdBanner'
 
 const STAGE_ORDER: Stage[] = ['interval', 'chord', 'scale', 'note', 'piano']
 
@@ -138,6 +139,11 @@ export function PracticePage() {
         {currentStage === 'scale'    && <ScaleModule />}
         {currentStage === 'note'     && <NoteModule />}
         {currentStage === 'piano'    && <FreePianoModule />}
+      </div>
+
+      {/* ── Bottom banner ad ───────────────────────────────────────── */}
+      <div className="flex justify-center px-4 py-2">
+        <AdBanner size="banner" />
       </div>
     </div>
   )

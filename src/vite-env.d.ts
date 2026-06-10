@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
 
+declare module 'vite-plugin-obfuscator'
+
 declare const __BUILD_INFO__: string
 
 interface ImportMetaEnv {

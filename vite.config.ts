@@ -8,7 +8,7 @@ import { readFileSync } from 'fs'
 const { version } = JSON.parse(readFileSync('./package.json', 'utf-8'))
 const buildDate = new Date().toISOString().slice(0, 10)
 
-export default defineConfig({
+export default defineConfig(({ mode: _mode }) => ({
   base: '/',
   define: {
     __BUILD_INFO__: JSON.stringify(`v${version} · ${buildDate}`),
@@ -36,11 +36,9 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Cache all static assets (JS, CSS, fonts, images)
         globPatterns: ['**/*.{js,css,html,svg,woff2,woff,ttf,wav}'],
         runtimeCaching: [
           {
-            // Google Fonts — cache-first, 1 year
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
@@ -55,4 +53,4 @@ export default defineConfig({
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
   },
-})
+}))
