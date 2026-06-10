@@ -112,7 +112,6 @@ class AudioEngine {
       this.masterGain.connect(ac.destination)
     }
   }
-  }
 
   // Inner scheduling — must only be called when ac.state === 'running'
   private _doAttack(ac: AudioContext, ns: string, velocity: number) {
