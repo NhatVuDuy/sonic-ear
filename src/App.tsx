@@ -179,6 +179,9 @@ function Header() {
         <NavBtn icon="🏆" label="Bảng xếp hạng" onClick={() => navigate('/leaderboard')} />
         <AuthBtn />
       </div>
+      <div className="font-mono text-[.55rem] tracking-[.08em] text-[#8a7d6a]/40 hidden sm:block">
+        {__BUILD_INFO__}
+      </div>
     </header>
   )
 }
