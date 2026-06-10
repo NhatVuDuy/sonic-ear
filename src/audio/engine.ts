@@ -73,51 +73,45 @@ class AudioEngine {
     this.reverbNode.buffer = buf
     this.reverbNode.connect(this.reverbGain)
 
-    // ── iOS dual-path audio ───────────────────────────────────────────────
-    // iOS Web Audio uses AVAudioSessionCategoryAmbient by default:
-    //   • audio routes to earpiece
-    //   • hardware mute switch silences it
+    // ── iOS audio routing ─────────────────────────────────────────────────
+    // Web Audio uses AVAudioSessionCategoryAmbient: mute switch silences it,
+    // audio routes to earpiece. HTMLAudioElement uses Playback: ignores mute,
+    // routes to external speaker.
     //
-    // Fix: run TWO parallel output paths.
+    // Safari browser: pipe masterGain → MediaStreamDestination → <audio>.
+    //   The <audio> element at default volume (1.0) plays the actual signal and
+    //   causes iOS to use AVAudioSessionCategoryPlayback for the whole page.
+    //   ac.destination is NOT connected (Playback only — no Ambient fallback needed).
     //
-    // Path A — ac.destination (always active, guarantees audio in PWA mode
-    //   and in Safari when the stream path fails or is unsupported).
-    //
-    // Path B — createMediaStreamDestination → <audio srcObject> at low volume.
-    //   An HTMLAudioElement uses AVAudioSessionCategoryPlayback. iOS detects it
-    //   as active media playback and upgrades the WHOLE PAGE's audio session,
-    //   which means Path A also runs under Playback → external speaker,
-    //   mute switch ignored.
-    //
-    // The media element volume is kept at 0.001 so only Path A is audible.
-    // Both paths carry the same signal but the user only hears Path A.
-    this.masterGain.connect(ac.destination)
+    // PWA standalone (WKWebView): srcObject on <audio> silently fails to output
+    //   even though play() resolves, so the stream path produces no sound.
+    //   Use ac.destination directly; mute-switch bypass is not available in PWA.
+    const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    const isPWA = isIOS && (navigator as any).standalone === true
 
-    if (typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    if (isIOS && !isPWA && typeof (ac as any).createMediaStreamDestination === 'function') {
+      // Safari browser path — full mute bypass
       try {
-        // iOS session upgrade: feed a near-silent tap into a MediaStream, then
-        // play it via an HTMLAudioElement at el.volume = 1.
-        // iOS evaluates el.volume (not the signal amplitude) to decide session
-        // category — el.volume=1 triggers AVAudioSessionCategoryPlayback, which
-        // causes the whole page (including ac.destination in Path A) to ignore
-        // the hardware mute switch. The tap gain is 0.001 so the stream path
-        // is acoustically inaudible; the user only hears Path A.
-        const tap = ac.createGain()
-        tap.gain.value = 0.001
-        this.masterGain.connect(tap)
-        const msOut = (ac as any).createMediaStreamDestination() as MediaStreamAudioDestinationNode
-        tap.connect(msOut)
+        const out = (ac as any).createMediaStreamDestination() as MediaStreamAudioDestinationNode
+        this.masterGain.connect(out)
         const el = document.createElement('audio') as HTMLAudioElement
-        el.srcObject = msOut.stream
+        el.srcObject = out.stream
         el.setAttribute('playsinline', '')
         el.setAttribute('webkit-playsinline', '')
-        el.loop = true
-        el.volume = 1.0   // must be 1 — iOS uses this to gate session upgrade
         el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px'
         document.body.appendChild(el)
-        el.play().catch(() => {})
-      } catch (_) {}
+        el.play().catch(() => {
+          // play() rejected (e.g. gesture frame lost) — fall back so audio still works
+          this.masterGain.connect(ac.destination)
+        })
+      } catch (_) {
+        this.masterGain.connect(ac.destination)
+      }
+    } else {
+      // PWA standalone or non-iOS — use direct destination
+      this.masterGain.connect(ac.destination)
     }
+  }
   }
 
   // Inner scheduling — must only be called when ac.state === 'running'
