@@ -130,8 +130,10 @@ class AudioEngine {
     //   4. Keep the element in the viewport — iOS pauses off-screen <audio>
     //      elements as an autoplay heuristic.
     const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    console.log('[SonicEar Audio]', { isIOS, userAgent: navigator?.userAgent?.slice(0, 50) })
     if (isIOS) {
       try {
+        console.log('[iOS mute bypass] Creating near-silent WAV...')
         const url = URL.createObjectURL(makeNearSilentWav())
         const el = document.createElement('audio') as HTMLAudioElement
         el.src = url
@@ -141,8 +143,17 @@ class AudioEngine {
         el.setAttribute('webkit-playsinline', '')
         el.style.cssText = 'position:absolute;top:0;left:0;width:0;height:0;opacity:0;pointer-events:none'
         document.body.appendChild(el)
-        el.play().catch(() => {})
-      } catch (_) {}
+        console.log('[iOS mute bypass] Calling el.play()...')
+        el.play()
+          .then(() => {
+            console.log('[iOS mute bypass] ✓ el.play() resolved — session upgrade should occur')
+          })
+          .catch((err) => {
+            console.error('[iOS mute bypass] ✗ el.play() rejected:', err?.message || err)
+          })
+      } catch (err) {
+        console.error('[iOS mute bypass] Exception:', err)
+      }
     }
   }
 
