@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { INTERVALS, Interval, shuffle, pick, NOTE_NAMES, NOTE_DISPLAY, shiftNote } from '@/theory'
 import { audio } from '@/audio/engine'
 import { useStore } from '@/store'
+import { useSRStore, srWeightedPick } from '@/store/sr'
 import { Card, CardTitle, PlayBtn, FeedbackBar, OptionBtn, ModuleTabs, NoteBubble } from '@/components/UI'
 import { Piano } from '@/components/Piano'
 
@@ -17,6 +18,7 @@ function getPool(mode: Mode): Interval[] {
 
 export function IntervalModule() {
   const { onCorrect, onWrong } = useStore()
+  const { record: srRecord } = useSRStore()
   const [mode, setMode] = useState<Mode>('basic')
   const [q, setQ] = useState<Q | null>(null)
   const [opts, setOpts] = useState<Interval[]>([])
@@ -26,7 +28,7 @@ export function IntervalModule() {
 
   const newQ = useCallback((m: Mode = mode) => {
     const pool = getPool(m)
-    const iv = pick(pool)
+    const iv = srWeightedPick(pool, iv => `iv:${iv.s}`)
     const ri = Math.floor(Math.random() * 9)
     const n1 = NOTE_NAMES[ri] + '4'
     const n2 = shiftNote(ri, iv.s, 4)
@@ -49,7 +51,9 @@ export function IntervalModule() {
     if (answered || !q) return
     setAnswered(true)
     setSelected(s)
-    if (s === q.iv.s) onCorrect(12)
+    const ok = s === q.iv.s
+    srRecord(`iv:${q.iv.s}`, ok)
+    if (ok) onCorrect(12)
     else onWrong()
   }
 

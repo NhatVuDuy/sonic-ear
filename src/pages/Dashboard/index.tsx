@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useStore, type SessionResult } from '@/store'
 import { useAuthStore } from '@/store/auth'
 import { supabase, isSupabaseReady, type GameSession } from '@/lib/supabase'
+import { useSRStore } from '@/store/sr'
 import { THEMES } from '@/theme'
+import { INTERVALS } from '@/theory'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -228,6 +230,76 @@ function ModuleBreakdown({ entries }: { entries: Entry[] }) {
   )
 }
 
+// ── Weak spots panel ─────────────────────────────────────────────────────────
+
+const INTERVAL_NAMES: Record<string, string> = {}
+INTERVALS.forEach(iv => { INTERVAL_NAMES[`iv:${iv.s}`] = iv.vn })
+
+const CHORD_NAMES: Record<string, string> = {
+  'ch:major':'Trưởng','ch:minor':'Thứ','ch:dom7':'Át thất','ch:maj7':'Trưởng thất',
+  'ch:min7':'Thứ thất','ch:dim':'Giảm','ch:aug':'Tăng','ch:sus4':'Sus4',
+}
+const SCALE_NAMES: Record<string, string> = {
+  'sc:major':'Trưởng','sc:minor':'Thứ tự nhiên','sc:harmMinor':'Thứ hòa âm',
+  'sc:blues':'Blues','sc:pentatonic':'Ngũ cung','sc:dorian':'Dorian',
+}
+const NOTE_LABELS = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B']
+
+function labelFor(key: string): string {
+  if (key.startsWith('iv:')) return INTERVAL_NAMES[key] ?? key
+  if (key.startsWith('ch:')) return CHORD_NAMES[key] ?? key.slice(3)
+  if (key.startsWith('sc:')) return SCALE_NAMES[key] ?? key.slice(3)
+  if (key.startsWith('nt:')) return NOTE_LABELS[Number(key.slice(3))] ?? key
+  return key
+}
+
+function WeakSpots() {
+  const { weakSpots } = useSRStore()
+  const { themeId } = useStore()
+  const isDark = THEMES[themeId].isDark
+
+  const all = [
+    ...weakSpots('iv:', 4),
+    ...weakSpots('ch:', 3),
+    ...weakSpots('sc:', 3),
+    ...weakSpots('nt:', 3),
+  ].sort((a, b) => a.card.ease - b.card.ease).slice(0, 8)
+
+  if (all.length === 0) return null
+
+  const prefixEmoji = (key: string) =>
+    key.startsWith('iv:') ? '🎼' :
+    key.startsWith('ch:') ? '🎹' :
+    key.startsWith('sc:') ? '🎵' : '🎙️'
+
+  return (
+    <div className="rounded-3xl p-4" style={{
+      background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.92)',
+      border: '1.5px solid var(--t-opt-border)',
+    }}>
+      <h3 className="mb-3 font-mono text-xs font-bold tracking-wider uppercase" style={{ color: 'var(--t-dim)' }}>
+        🎯 Điểm yếu — cần ôn luyện
+      </h3>
+      <div className="grid grid-cols-2 gap-2">
+        {all.map(({ key, card }) => {
+          const total = card.correct + card.wrong
+          const acc = total > 0 ? Math.round((card.correct / total) * 100) : 0
+          return (
+            <div key={key} className="flex items-center gap-2 rounded-xl px-3 py-2"
+              style={{ background: isDark ? 'rgba(255,100,100,0.08)' : 'rgba(255,100,100,0.06)', border: '1px solid rgba(255,100,100,0.15)' }}>
+              <span>{prefixEmoji(key)}</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-semibold truncate" style={{ color: 'var(--t-text)' }}>{labelFor(key)}</div>
+                <div className="font-mono text-[10px]" style={{ color: '#ff6b6b' }}>{acc}% · {card.wrong}✗</div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export function DashboardPage() {
@@ -346,6 +418,9 @@ export function DashboardPage() {
             <ModuleBreakdown entries={entries} />
           </>
         )}
+
+        {/* Weak spots from SR */}
+        <WeakSpots />
 
         {!user && (
           <div className="rounded-2xl p-4 text-center text-sm" style={{

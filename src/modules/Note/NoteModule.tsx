@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { NOTE_NAMES, NOTE_DISPLAY, shuffle } from '@/theory'
 import { audio } from '@/audio/engine'
 import { useStore } from '@/store'
+import { useSRStore, srWeightedPick } from '@/store/sr'
 import { Card, CardTitle, PlayBtn, FeedbackBar, OptionBtn } from '@/components/UI'
 import { Piano } from '@/components/Piano'
 
@@ -9,14 +10,17 @@ interface Q { ni: number; ns: string; correct: string }
 
 export function NoteModule() {
   const { onCorrect, onWrong } = useStore()
+  const { record: srRecord } = useSRStore()
   const [q, setQ] = useState<Q | null>(null)
   const [opts, setOpts] = useState<string[]>([])
   const [answered, setAnswered] = useState(false)
   const [selected, setSelected] = useState<string | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
 
+  const allNoteIndices = Array.from({ length: 12 }, (_, i) => i)
+
   const newQ = useCallback(() => {
-    const ni = Math.floor(Math.random() * 12)
+    const ni = srWeightedPick(allNoteIndices, i => `nt:${i}`)
     const ns = NOTE_NAMES[ni] + '4'
     const correct = NOTE_DISPLAY[ni]
     const wrong = shuffle(NOTE_DISPLAY.filter((_,i)=>i!==ni)).slice(0,7)
@@ -37,7 +41,9 @@ export function NoteModule() {
     if (answered || !q) return
     setAnswered(true)
     setSelected(n)
-    if (n === q.correct) onCorrect(8)
+    const ok = n === q.correct
+    srRecord(`nt:${q.ni}`, ok)
+    if (ok) onCorrect(8)
     else onWrong()
   }
 
