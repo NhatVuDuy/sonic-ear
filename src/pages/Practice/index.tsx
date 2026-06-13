@@ -6,9 +6,10 @@ import { ChordModule } from '@/modules/Chord'
 import { ScaleModule } from '@/modules/Scale'
 import { NoteModule } from '@/modules/Note'
 import { FreePianoModule } from '@/modules/FreePiano'
+import { ChordProgressionModule } from '@/modules/ChordProgression'
 import { ProgressBar, StatBox } from '@/components/UI'
 
-const STAGE_ORDER: Stage[] = ['interval', 'chord', 'scale', 'note', 'piano']
+const STAGE_ORDER: Stage[] = ['interval', 'chord', 'scale', 'note', 'progression', 'piano']
 
 export function PracticePage() {
   const { correct, wrong, streak, xp, level, currentStage, setStage, themeId } = useStore()
@@ -133,11 +134,12 @@ export function PracticePage() {
           background: `radial-gradient(ellipse 80% 40% at 50% 0%, ${ma.subtle} 0%, transparent 70%)`,
         }}
       >
-        {currentStage === 'interval' && <IntervalModule />}
-        {currentStage === 'chord'    && <ChordModule />}
-        {currentStage === 'scale'    && <ScaleModule />}
-        {currentStage === 'note'     && <NoteModule />}
-        {currentStage === 'piano'    && <FreePianoModule />}
+        {currentStage === 'interval'    && <IntervalModule />}
+        {currentStage === 'chord'       && <ChordModule />}
+        {currentStage === 'scale'       && <ScaleModule />}
+        {currentStage === 'note'        && <NoteModule />}
+        {currentStage === 'progression' && <ChordProgressionModule />}
+        {currentStage === 'piano'       && <FreePianoModule />}
       </div>
     </div>
   )

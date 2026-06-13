@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react'
-import { SCALES, ScaleDef, buildScaleNotes, shuffle, pick, NOTE_NAMES, NOTE_DISPLAY } from '@/theory'
+import { SCALES, ScaleDef, buildScaleNotes, shuffle, NOTE_NAMES, NOTE_DISPLAY } from '@/theory'
 import { audio } from '@/audio/engine'
 import { useStore } from '@/store'
+import { useSRStore, srWeightedPick } from '@/store/sr'
 import { Card, CardTitle, PlayBtn, FeedbackBar, OptionBtn, ModuleTabs } from '@/components/UI'
 import { Piano } from '@/components/Piano'
 
@@ -16,6 +17,7 @@ function getPool(mode: Mode) {
 
 export function ScaleModule() {
   const { onCorrect, onWrong } = useStore()
+  const { record: srRecord } = useSRStore()
   const [mode, setMode] = useState<Mode>('basic')
   const [q, setQ] = useState<Q | null>(null)
   const [opts, setOpts] = useState<string[]>([])
@@ -25,7 +27,7 @@ export function ScaleModule() {
 
   const newQ = useCallback((m: Mode = mode) => {
     const pool = getPool(m)
-    const sk = pick(pool)
+    const sk = srWeightedPick(pool, k => `sc:${k}`)
     const sc = SCALES[sk]
     const ri = Math.floor(Math.random() * 12)
     const sns = buildScaleNotes(ri, sc.steps, 4)
@@ -47,7 +49,9 @@ export function ScaleModule() {
     if (answered || !q) return
     setAnswered(true)
     setSelected(k)
-    if (k === q.sk) onCorrect(18)
+    const ok = k === q.sk
+    srRecord(`sc:${q.sk}`, ok)
+    if (ok) onCorrect(18)
     else onWrong()
   }
 
@@ -102,8 +106,8 @@ export function ScaleModule() {
           :ok?<>✓ Xuất sắc! <b>{NOTE_DISPLAY[q.ri]} {q.sc.vn}</b><span className="cursor-pointer underline opacity-70 ml-2" onClick={()=>newQ()}>Tiếp →</span></>
           :<>✗ Sai. Đáp án: <b>{NOTE_DISPLAY[q.ri]} {q.sc.vn}</b><span className="cursor-pointer underline opacity-70 ml-2" onClick={()=>newQ()}>Tiếp →</span></>}
       </FeedbackBar>
-      <Card><CardTitle>Bàn phím — Oct 3–5</CardTitle>
-        <Piano startOctave={3} numOctaves={3} highlighted={answered?q.sns:[]} /></Card>
+      <Card><CardTitle>Bàn phím — Oct 4–6</CardTitle>
+        <Piano startOctave={4} numOctaves={3} highlighted={answered?q.sns:[]} /></Card>
     </div>
   )
 }

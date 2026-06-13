@@ -4,6 +4,7 @@ interface Voice {
   oscs: OscillatorNode[]
   env: GainNode
   filter: BiquadFilterNode
+  presence: BiquadFilterNode
 }
 
 class AudioEngine {
@@ -121,39 +122,61 @@ class AudioEngine {
     const hz = noteToHz(name, oct)
     const now = ac.currentTime
 
+    // Presence EQ: slight boost around 2.2 kHz gives clarity and attack definition
+    const presence = ac.createBiquadFilter()
+    presence.type = 'peaking'
+    presence.frequency.value = 2200
+    presence.Q.value = 1.4
+    presence.gain.value = 2.5
+    presence.connect(this.dryGain)
+    presence.connect(this.reverbNode)
+
+    // Velocity-to-brightness: harder hits open the filter more
     const filter = ac.createBiquadFilter()
     filter.type = 'lowpass'
-    filter.frequency.value = Math.min(8000, 600 + hz * 4.5)
-    filter.Q.value = 0.5
+    filter.frequency.value = Math.min(10000, 300 + hz * 3.5 + velocity * 3500)
+    filter.Q.value = 0.45
+    filter.connect(presence)
 
+    // ADSR: 1 ms attack → fast 80 ms decay to 55% peak → slow 2.8 s sustain fade
     const env = ac.createGain()
     env.gain.setValueAtTime(0, now)
-    env.gain.linearRampToValueAtTime(velocity * 0.92, now + 0.002)
-    env.gain.exponentialRampToValueAtTime(velocity * 0.26, now + 0.9)
+    env.gain.linearRampToValueAtTime(velocity * 0.90, now + 0.001)
+    env.gain.exponentialRampToValueAtTime(velocity * 0.55, now + 0.081)
+    env.gain.exponentialRampToValueAtTime(velocity * 0.10, now + 2.9)
     env.connect(filter)
-    filter.connect(this.dryGain)
-    filter.connect(this.reverbNode)
 
-    const makeOsc = (type: OscillatorType, freq: number, gain: number) => {
+    const makeOsc = (type: OscillatorType, freq: number, gain: number, pan?: number) => {
       const o = ac.createOscillator()
       const g = ac.createGain()
       o.type = type
       o.frequency.value = freq
       g.gain.value = gain
-      o.connect(g); g.connect(env)
+      o.connect(g)
+      if (pan !== undefined) {
+        const p = ac.createStereoPanner()
+        p.pan.value = pan
+        g.connect(p)
+        p.connect(env)
+      } else {
+        g.connect(env)
+      }
       o.start(now)
       return o
     }
 
     const oscs = [
-      makeOsc('triangle', hz,         0.42),
-      makeOsc('sawtooth', hz * 1.003, 0.09),
-      makeOsc('sine',     hz * 0.5,   0.22),
-      makeOsc('sine',     hz * 2,     0.20),
-      makeOsc('sine',     hz * 3,     0.08),
+      makeOsc('triangle', hz,              0.35),         // fundamental center
+      makeOsc('triangle', hz * 0.99769,    0.15, -0.22),  // chorus –4 cents, panned L
+      makeOsc('triangle', hz * 1.00231,    0.15,  0.22),  // chorus +4 cents, panned R
+      makeOsc('sawtooth', hz * 1.003,      0.06),         // slight-detune brightness
+      makeOsc('sine',     hz * 0.5,        0.22),         // sub octave warmth
+      makeOsc('sine',     hz * 2.0005,     0.14),         // inharmonic 2nd partial
+      makeOsc('sine',     hz * 3.001,      0.05),         // inharmonic 3rd partial
+      makeOsc('sine',     hz * 4.002,      0.02),         // inharmonic 4th partial
     ]
 
-    this.voices.set(ns, { oscs, env, filter })
+    this.voices.set(ns, { oscs, env, filter, presence })
   }
 
   attack(ns: string, velocity = 0.8) {
@@ -177,7 +200,7 @@ class AudioEngine {
 
     setTimeout(() => {
       voice.oscs.forEach(o => { try { o.stop(); o.disconnect() } catch {} })
-      try { voice.env.disconnect(); voice.filter.disconnect() } catch {}
+      try { voice.env.disconnect(); voice.filter.disconnect(); voice.presence.disconnect() } catch {}
     }, (rel + 0.1) * 1000)
   }
 

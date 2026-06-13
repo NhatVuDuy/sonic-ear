@@ -33,7 +33,7 @@ export function FreePianoModule() {
         <p className="mt-1 text-[.82rem] t-dim">Nhấn phím để chơi · Scroll ngang để xem thêm</p>
       </div>
       <Card>
-        <Piano startOctave={3} numOctaves={3} highlighted={highlighted} />
+        <Piano startOctave={4} numOctaves={3} highlighted={highlighted} />
         <div className="mt-3">
           <div className="mb-2 font-mono text-[.68rem] uppercase tracking-widest t-dim">Nghe Gam</div>
           <div className="flex flex-wrap gap-2">

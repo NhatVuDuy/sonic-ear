@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react'
-import { CHORDS, ChordDef, shuffle, pick, NOTE_NAMES, NOTE_DISPLAY, shiftNote } from '@/theory'
+import { CHORDS, ChordDef, shuffle, NOTE_NAMES, NOTE_DISPLAY, shiftNote } from '@/theory'
 import { audio } from '@/audio/engine'
 import { useStore } from '@/store'
+import { useSRStore, srWeightedPick } from '@/store/sr'
 import { Card, CardTitle, PlayBtn, FeedbackBar, OptionBtn, ModuleTabs, Btn } from '@/components/UI'
 import { Piano } from '@/components/Piano'
 
@@ -16,6 +17,7 @@ function getPool(mode: Mode) {
 
 export function ChordModule() {
   const { onCorrect, onWrong } = useStore()
+  const { record: srRecord } = useSRStore()
   const [mode, setMode] = useState<Mode>('basic')
   const [q, setQ] = useState<Q | null>(null)
   const [opts, setOpts] = useState<string[]>([])
@@ -25,7 +27,7 @@ export function ChordModule() {
 
   const newQ = useCallback((m: Mode = mode) => {
     const pool = getPool(m)
-    const ck = pick(pool)
+    const ck = srWeightedPick(pool, k => `ch:${k}`)
     const ch = CHORDS[ck]
     const ri = Math.floor(Math.random() * 12)
     const cns = ch.sem.map(s => shiftNote(ri, s, 4))
@@ -47,7 +49,9 @@ export function ChordModule() {
     if (answered || !q) return
     setAnswered(true)
     setSelected(k)
-    if (k === q.ck) onCorrect(15)
+    const ok = k === q.ck
+    srRecord(`ch:${q.ck}`, ok)
+    if (ok) onCorrect(15)
     else onWrong()
   }
 
@@ -87,8 +91,8 @@ export function ChordModule() {
           :ok?<>✓ Đúng! <b>{NOTE_DISPLAY[q.ri]} {q.ch.name}</b><span className="cursor-pointer underline opacity-70 ml-2" onClick={()=>newQ()}>Tiếp →</span></>
           :<>✗ Sai. Đáp án: <b>{NOTE_DISPLAY[q.ri]} {q.ch.name}</b><span className="cursor-pointer underline opacity-70 ml-2" onClick={()=>newQ()}>Tiếp →</span></>}
       </FeedbackBar>
-      <Card><CardTitle>Bàn phím — Oct 3–5</CardTitle>
-        <Piano startOctave={3} numOctaves={3} highlighted={answered?q.cns:[]} /></Card>
+      <Card><CardTitle>Bàn phím — Oct 4–6</CardTitle>
+        <Piano startOctave={4} numOctaves={3} highlighted={answered?q.cns:[]} /></Card>
     </div>
   )
 }

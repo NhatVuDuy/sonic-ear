@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { ThemeId } from '@/theme'
 import { analytics } from '@/analytics'
 
-export type Stage = 'interval' | 'chord' | 'scale' | 'note' | 'piano'
+export type Stage = 'interval' | 'chord' | 'scale' | 'note' | 'piano' | 'progression'
 export type Difficulty = 'basic' | 'medium' | 'all'
 
 interface SessionResult {
@@ -72,6 +72,7 @@ export const useStore = create<AppState>()(
         scale: 'basic',
         note: 'basic',
         piano: 'basic',
+        progression: 'basic',
       },
 
       onCorrect: (xp = 12) => {
@@ -132,6 +133,11 @@ export const useStore = create<AppState>()(
         score: s.score, xp: s.xp, level: s.level,
         history: s.history, difficulty: s.difficulty,
         themeId: s.themeId,
+      }),
+      merge: (persisted: any, current) => ({
+        ...current,
+        ...persisted,
+        difficulty: { ...current.difficulty, ...(persisted?.difficulty ?? {}) },
       }),
     }
   )
