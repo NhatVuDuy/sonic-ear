@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { PracticePage } from '@/pages/Practice'
 import { ProfilePage } from '@/pages/Profile'
 import { LeaderboardPage } from '@/pages/Leaderboard'
+import { DashboardPage } from '@/pages/Dashboard'
 import { AuthModal, UsernameModal } from '@/components/Auth'
 import { useStore } from '@/store'
 import { useAuthStore } from '@/store/auth'
@@ -176,6 +177,7 @@ function Header() {
       <div className="flex items-center gap-2">
         <ThemeSwitcher />
         <div className="mx-1 h-5 w-px opacity-20" style={{ background: 'var(--t-text)' }} />
+        <NavBtn icon="📊" label="Thống kê" onClick={() => navigate('/dashboard')} />
         <NavBtn icon="🏆" label="Bảng xếp hạng" onClick={() => navigate('/leaderboard')} />
         <AuthBtn />
       </div>
@@ -261,6 +263,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/practice" replace />} />
           <Route path="/practice" element={<PracticePage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
         </Routes>

@@ -6,7 +6,7 @@ import { analytics } from '@/analytics'
 export type Stage = 'interval' | 'chord' | 'scale' | 'note' | 'piano'
 export type Difficulty = 'basic' | 'medium' | 'all'
 
-interface SessionResult {
+export interface SessionResult {
   date: string
   stage: Stage
   correct: number
@@ -23,6 +23,11 @@ interface AppState {
   xp: number
   level: number
   history: SessionResult[]
+
+  // Non-persisted: current stage session tracking
+  _stageStart: number
+  _stageCorrect: number
+  _stageWrong: number
 
   // UI state
   currentStage: Stage
@@ -64,6 +69,9 @@ export const useStore = create<AppState>()(
       xp: 0,
       level: 1,
       history: [],
+      _stageStart: Date.now(),
+      _stageCorrect: 0,
+      _stageWrong: 0,
       currentStage: 'interval',
       themeId: 'kids' as ThemeId,
       difficulty: {
@@ -75,7 +83,7 @@ export const useStore = create<AppState>()(
       },
 
       onCorrect: (xp = 12) => {
-        const { streak, score, level, currentStage, difficulty } = get()
+        const { streak, score, level, currentStage, difficulty, _stageCorrect } = get()
         const bonus = streak > 2 ? 5 : 0
         const newXp = get().xp + xp
         const needed = level * 100
@@ -86,6 +94,7 @@ export const useStore = create<AppState>()(
           score: score + xp + bonus,
           xp: leveled ? newXp - needed : newXp,
           level: leveled ? level + 1 : level,
+          _stageCorrect: _stageCorrect + 1,
         })
         analytics.answerSubmitted({ module: currentStage, correct: true, difficulty: difficulty[currentStage], streak: streak + 1 })
         if (leveled) analytics.levelUp(level + 1, newXp)
@@ -93,13 +102,27 @@ export const useStore = create<AppState>()(
       },
 
       onWrong: () => {
-        const { currentStage, difficulty, streak } = get()
-        set({ wrong: get().wrong + 1, streak: 0 })
+        const { currentStage, difficulty, streak, _stageWrong } = get()
+        set({ wrong: get().wrong + 1, streak: 0, _stageWrong: _stageWrong + 1 })
         analytics.answerSubmitted({ module: currentStage, correct: false, difficulty: difficulty[currentStage], streak })
         scheduleSync()
       },
 
-      setStage: (s) => { set({ currentStage: s }); analytics.stageChanged(s) },
+      setStage: (s) => {
+        const { currentStage, _stageStart, _stageCorrect, _stageWrong } = get()
+        // Auto-save current stage session when switching
+        if (_stageCorrect + _stageWrong > 0) {
+          get().addHistory({
+            date: new Date().toISOString(),
+            stage: currentStage,
+            correct: _stageCorrect,
+            wrong: _stageWrong,
+            durationMs: Date.now() - _stageStart,
+          })
+        }
+        set({ currentStage: s, _stageStart: Date.now(), _stageCorrect: 0, _stageWrong: 0 })
+        analytics.stageChanged(s)
+      },
 
       setTheme: (id) => { set({ themeId: id }); analytics.themeChanged(id) },
 
