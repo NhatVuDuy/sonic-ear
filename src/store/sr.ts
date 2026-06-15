@@ -15,6 +15,7 @@ interface SRState {
   record: (key: string, isCorrect: boolean) => void
   getCard: (key: string) => SRCard | undefined
   weakSpots: (prefix: string, limit?: number) => Array<{ key: string; card: SRCard }>
+  reset: () => void
 }
 
 function sm2Update(card: SRCard, isCorrect: boolean): SRCard {
@@ -64,6 +65,8 @@ export const useSRStore = create<SRState>()(
           .slice(0, limit)
         return all.map(([key, card]) => ({ key, card }))
       },
+
+      reset: () => set({ cards: {} }),
     }),
     { name: 'sonicear-sr-v1' }
   )

@@ -16,6 +16,11 @@ class AudioEngine {
   private reverbNode!: ConvolverNode
   private voices: Map<string, Voice> = new Map()
 
+  // Settings — applied when buildChain() runs; setters update immediately if chain exists
+  private _volume = 0.82
+  private _reverbMix = 1.0
+  scaleTempo = 0.2
+
   private getAC(): AudioContext {
     if (!this.ac) {
       this.ac = new (window.AudioContext || (window as any).webkitAudioContext)()
@@ -43,7 +48,7 @@ class AudioEngine {
   private buildChain() {
     const ac = this.ac!
     this.masterGain = ac.createGain()
-    this.masterGain.gain.value = 0.82
+    this.masterGain.gain.value = this._volume
 
     this.compressor = ac.createDynamicsCompressor()
     this.compressor.threshold.value = -16
@@ -54,11 +59,11 @@ class AudioEngine {
     this.compressor.connect(this.masterGain)
 
     this.dryGain = ac.createGain()
-    this.dryGain.gain.value = 0.58
+    this.dryGain.gain.value = 0.58 + (1 - this._reverbMix) * 0.42
     this.dryGain.connect(this.compressor)
 
     this.reverbGain = ac.createGain()
-    this.reverbGain.gain.value = 0.42
+    this.reverbGain.gain.value = this._reverbMix * 0.42
     this.reverbGain.connect(this.compressor)
 
     const sr = ac.sampleRate
@@ -234,11 +239,24 @@ class AudioEngine {
     }
   }
 
-  playScale(noteStrs: string[], tempo = 0.2) {
+  playScale(noteStrs: string[], tempo = this.scaleTempo) {
     this.getAC()
     noteStrs.forEach((ns, i) => this.playNote(ns, 0.85, 0.72, i * tempo))
     const rev = [...noteStrs].reverse().slice(1)
     rev.forEach((ns, i) => this.playNote(ns, 0.85, 0.68, (noteStrs.length + i) * tempo))
+  }
+
+  setVolume(v: number) {
+    this._volume = v
+    if (this.masterGain) this.masterGain.gain.value = v
+  }
+
+  setReverb(mix: number) {
+    this._reverbMix = mix
+    if (this.reverbGain) {
+      this.reverbGain.gain.value = mix * 0.42
+      this.dryGain.gain.value = 0.58 + (1 - mix) * 0.42
+    }
   }
 
   isReady() { return this.ac !== null }

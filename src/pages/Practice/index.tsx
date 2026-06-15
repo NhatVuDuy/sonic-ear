@@ -7,9 +7,10 @@ import { ScaleModule } from '@/modules/Scale'
 import { NoteModule } from '@/modules/Note'
 import { FreePianoModule } from '@/modules/FreePiano'
 import { ChordProgressionModule } from '@/modules/ChordProgression'
+import { RhythmModule } from '@/modules/Rhythm'
 import { ProgressBar, StatBox } from '@/components/UI'
 
-const STAGE_ORDER: Stage[] = ['interval', 'chord', 'scale', 'note', 'progression', 'piano']
+const STAGE_ORDER: Stage[] = ['interval', 'chord', 'scale', 'note', 'progression', 'rhythm', 'piano']
 
 export function PracticePage() {
   const { correct, wrong, streak, xp, level, currentStage, setStage, themeId } = useStore()
@@ -139,6 +140,7 @@ export function PracticePage() {
         {currentStage === 'scale'       && <ScaleModule />}
         {currentStage === 'note'        && <NoteModule />}
         {currentStage === 'progression' && <ChordProgressionModule />}
+        {currentStage === 'rhythm'      && <RhythmModule />}
         {currentStage === 'piano'       && <FreePianoModule />}
       </div>
     </div>

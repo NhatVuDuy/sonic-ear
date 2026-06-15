@@ -3,11 +3,15 @@ import { useEffect, useState } from 'react'
 import { PracticePage } from '@/pages/Practice'
 import { ProfilePage } from '@/pages/Profile'
 import { LeaderboardPage } from '@/pages/Leaderboard'
+import { DashboardPage } from '@/pages/Dashboard'
+import { SettingsPage } from '@/pages/Settings'
 import { AuthModal, UsernameModal } from '@/components/Auth'
 import { useStore } from '@/store'
 import { useAuthStore } from '@/store/auth'
+import { useSettings } from '@/store/settings'
 import { THEMES, THEME_IDS, applyTheme } from '@/theme'
 import { analytics } from '@/analytics'
+import { audio } from '@/audio/engine'
 
 // ─── Theme switcher pills ────────────────────────────────────────────────
 function ThemeSwitcher() {
@@ -176,7 +180,9 @@ function Header() {
       <div className="flex items-center gap-2">
         <ThemeSwitcher />
         <div className="mx-1 h-5 w-px opacity-20" style={{ background: 'var(--t-text)' }} />
+        <NavBtn icon="📊" label="Thống kê" onClick={() => navigate('/dashboard')} />
         <NavBtn icon="🏆" label="Bảng xếp hạng" onClick={() => navigate('/leaderboard')} />
+        <NavBtn icon="⚙️" label="Cài đặt" onClick={() => navigate('/settings')} />
         <AuthBtn />
       </div>
       <div className="font-mono text-[.55rem] tracking-[.08em] text-[#8a7d6a]/40 hidden sm:block">
@@ -186,12 +192,18 @@ function Header() {
   )
 }
 
-// ─── Theme + Auth initializer ─────────────────────────────────────────────
+// ─── Theme + Auth + Settings initializer ─────────────────────────────────
 function AppInit() {
   const themeId = useStore(s => s.themeId)
   const init = useAuthStore(s => s.init)
+  const { volume, reverbMix, scaleTempo } = useSettings()
   useEffect(() => { applyTheme(themeId) }, [themeId])
   useEffect(() => { init() }, [init])
+  useEffect(() => {
+    audio.setVolume(volume)
+    audio.setReverb(reverbMix)
+    audio.scaleTempo = scaleTempo
+  }, [volume, reverbMix, scaleTempo])
   return null
 }
 
@@ -261,6 +273,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/practice" replace />} />
           <Route path="/practice" element={<PracticePage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
         </Routes>

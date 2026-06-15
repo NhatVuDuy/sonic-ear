@@ -107,6 +107,7 @@ const KIDS: ThemeDef = {
     note:        { accent: '#4d96ff', accentDark: '#1971c2', glow: 'rgba(77,150,255,0.45)',  subtle: 'rgba(77,150,255,0.07)',  label: 'Nốt Đơn',   emoji: '🎵' },
     piano:       { accent: '#a29bfe', accentDark: '#6741d9', glow: 'rgba(162,155,254,0.45)', subtle: 'rgba(162,155,254,0.07)', label: 'Đàn Tự Do', emoji: '🎹' },
     progression: { accent: '#fd79a8', accentDark: '#c0306e', glow: 'rgba(253,121,168,0.45)', subtle: 'rgba(253,121,168,0.07)', label: 'Tiến Hành', emoji: '🎶' },
+    rhythm:      { accent: '#f39c12', accentDark: '#c07800', glow: 'rgba(243,156,18,0.45)',  subtle: 'rgba(243,156,18,0.07)',  label: 'Tiết Tấu',  emoji: '🥁' },
   },
 }
 
@@ -163,6 +164,7 @@ const CLASSIC: ThemeDef = {
     note:        { accent: '#c9a84c', accentDark: '#e8c96d', glow: 'rgba(201,168,76,0.5)',  subtle: 'rgba(201,168,76,0.08)', label: 'Nốt Đơn',   emoji: '🎵' },
     piano:       { accent: '#c9a84c', accentDark: '#e8c96d', glow: 'rgba(201,168,76,0.5)',  subtle: 'rgba(201,168,76,0.08)', label: 'Đàn Tự Do', emoji: '🎹' },
     progression: { accent: '#c9a84c', accentDark: '#e8c96d', glow: 'rgba(201,168,76,0.5)',  subtle: 'rgba(201,168,76,0.08)', label: 'Tiến Hành', emoji: '🎶' },
+    rhythm:      { accent: '#c9a84c', accentDark: '#e8c96d', glow: 'rgba(201,168,76,0.5)',  subtle: 'rgba(201,168,76,0.08)', label: 'Tiết Tấu',  emoji: '🥁' },
   },
 }
 
@@ -219,6 +221,7 @@ const STUDIO: ThemeDef = {
     note:        { accent: '#22d3ee', accentDark: '#67e8f9', glow: 'rgba(34,211,238,0.5)',  subtle: 'rgba(34,211,238,0.08)', label: 'Nốt Đơn',   emoji: '♩' },
     piano:       { accent: '#a855f7', accentDark: '#c084fc', glow: 'rgba(168,85,247,0.5)',  subtle: 'rgba(168,85,247,0.08)', label: 'Đàn Tự Do', emoji: '🎹' },
     progression: { accent: '#f472b6', accentDark: '#f9a8d4', glow: 'rgba(244,114,182,0.5)', subtle: 'rgba(244,114,182,0.08)', label: 'Tiến Hành', emoji: '🎶' },
+    rhythm:      { accent: '#06d6a0', accentDark: '#059669', glow: 'rgba(6,214,160,0.5)',   subtle: 'rgba(6,214,160,0.08)',   label: 'Tiết Tấu',  emoji: '🥁' },
   },
 }
 
@@ -275,6 +278,7 @@ const RAINBOW: ThemeDef = {
     note:        { accent: '#22d3ee', accentDark: '#67e8f9', glow: 'rgba(34,211,238,0.5)',  subtle: 'rgba(34,211,238,0.08)',  label: 'Nốt Đơn',   emoji: '♩' },
     piano:       { accent: '#a78bfa', accentDark: '#c4b5fd', glow: 'rgba(167,139,250,0.5)', subtle: 'rgba(167,139,250,0.08)', label: 'Đàn Tự Do', emoji: '🎹' },
     progression: { accent: '#34d399', accentDark: '#6ee7b7', glow: 'rgba(52,211,153,0.5)',  subtle: 'rgba(52,211,153,0.08)',  label: 'Tiến Hành', emoji: '🎶' },
+    rhythm:      { accent: '#fbbf24', accentDark: '#f59e0b', glow: 'rgba(251,191,36,0.5)',  subtle: 'rgba(251,191,36,0.08)',  label: 'Tiết Tấu',  emoji: '🥁' },
   },
 }
 
@@ -331,6 +335,7 @@ const NEON: ThemeDef = {
     note:        { accent: '#38bdf8', accentDark: '#7dd3fc', glow: 'rgba(56,189,248,0.45)',  subtle: 'rgba(56,189,248,0.07)',  label: 'Nốt Đơn',   emoji: '♩' },
     piano:       { accent: '#a855f7', accentDark: '#d8b4fe', glow: 'rgba(168,85,247,0.45)',  subtle: 'rgba(168,85,247,0.07)',  label: 'Đàn Tự Do', emoji: '🎹' },
     progression: { accent: '#facc15', accentDark: '#fde047', glow: 'rgba(250,204,21,0.45)',  subtle: 'rgba(250,204,21,0.07)',  label: 'Tiến Hành', emoji: '🎶' },
+    rhythm:      { accent: '#22d3ee', accentDark: '#67e8f9', glow: 'rgba(34,211,238,0.45)',  subtle: 'rgba(34,211,238,0.07)',  label: 'Tiết Tấu',  emoji: '🥁' },
   },
 }
 

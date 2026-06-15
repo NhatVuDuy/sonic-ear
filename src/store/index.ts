@@ -3,10 +3,10 @@ import { persist } from 'zustand/middleware'
 import type { ThemeId } from '@/theme'
 import { analytics } from '@/analytics'
 
-export type Stage = 'interval' | 'chord' | 'scale' | 'note' | 'piano' | 'progression'
+export type Stage = 'interval' | 'chord' | 'scale' | 'note' | 'piano' | 'progression' | 'rhythm'
 export type Difficulty = 'basic' | 'medium' | 'all'
 
-interface SessionResult {
+export interface SessionResult {
   date: string
   stage: Stage
   correct: number
@@ -15,7 +15,7 @@ interface SessionResult {
 }
 
 interface AppState {
-  // Progress
+  // Lifetime stats
   correct: number
   wrong: number
   streak: number
@@ -23,6 +23,11 @@ interface AppState {
   xp: number
   level: number
   history: SessionResult[]
+
+  // Current-session tracking (non-persisted)
+  _stageStart: number
+  _stageCorrect: number
+  _stageWrong: number
 
   // UI state
   currentStage: Stage
@@ -39,7 +44,6 @@ interface AppState {
   reset: () => void
 }
 
-// Debounced Supabase sync — fires 10s after last answer to batch updates
 let _syncTimer: ReturnType<typeof setTimeout> | null = null
 function scheduleSync() {
   if (typeof window === 'undefined') return
@@ -64,6 +68,9 @@ export const useStore = create<AppState>()(
       xp: 0,
       level: 1,
       history: [],
+      _stageStart: Date.now(),
+      _stageCorrect: 0,
+      _stageWrong: 0,
       currentStage: 'interval',
       themeId: 'kids' as ThemeId,
       difficulty: {
@@ -73,10 +80,11 @@ export const useStore = create<AppState>()(
         note: 'basic',
         piano: 'basic',
         progression: 'basic',
+        rhythm: 'basic',
       },
 
       onCorrect: (xp = 12) => {
-        const { streak, score, level, currentStage, difficulty } = get()
+        const { streak, score, level, currentStage, difficulty, _stageCorrect } = get()
         const bonus = streak > 2 ? 5 : 0
         const newXp = get().xp + xp
         const needed = level * 100
@@ -87,6 +95,7 @@ export const useStore = create<AppState>()(
           score: score + xp + bonus,
           xp: leveled ? newXp - needed : newXp,
           level: leveled ? level + 1 : level,
+          _stageCorrect: _stageCorrect + 1,
         })
         analytics.answerSubmitted({ module: currentStage, correct: true, difficulty: difficulty[currentStage], streak: streak + 1 })
         if (leveled) analytics.levelUp(level + 1, newXp)
@@ -94,13 +103,26 @@ export const useStore = create<AppState>()(
       },
 
       onWrong: () => {
-        const { currentStage, difficulty, streak } = get()
-        set({ wrong: get().wrong + 1, streak: 0 })
+        const { currentStage, difficulty, streak, _stageWrong } = get()
+        set({ wrong: get().wrong + 1, streak: 0, _stageWrong: _stageWrong + 1 })
         analytics.answerSubmitted({ module: currentStage, correct: false, difficulty: difficulty[currentStage], streak })
         scheduleSync()
       },
 
-      setStage: (s) => { set({ currentStage: s }); analytics.stageChanged(s) },
+      setStage: (s) => {
+        const { currentStage, _stageStart, _stageCorrect, _stageWrong } = get()
+        if (_stageCorrect + _stageWrong > 0) {
+          get().addHistory({
+            date: new Date().toISOString(),
+            stage: currentStage,
+            correct: _stageCorrect,
+            wrong: _stageWrong,
+            durationMs: Date.now() - _stageStart,
+          })
+        }
+        set({ currentStage: s, _stageStart: Date.now(), _stageCorrect: 0, _stageWrong: 0 })
+        analytics.stageChanged(s)
+      },
 
       setTheme: (id) => { set({ themeId: id }); analytics.themeChanged(id) },
 
@@ -108,8 +130,7 @@ export const useStore = create<AppState>()(
         set({ difficulty: { ...get().difficulty, [stage]: d } }),
 
       addHistory: (r) => {
-        set({ history: [r, ...get().history].slice(0, 200) })
-        // Push session to Supabase asynchronously
+        set({ history: [r, ...get().history].slice(0, 500) })
         import('@/store/auth').then(({ useAuthStore }) => {
           const { user, pushSession } = useAuthStore.getState()
           if (!user) return
