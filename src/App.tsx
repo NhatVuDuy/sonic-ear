@@ -5,6 +5,8 @@ import { ProfilePage } from '@/pages/Profile'
 import { LeaderboardPage } from '@/pages/Leaderboard'
 import { DashboardPage } from '@/pages/Dashboard'
 import { SettingsPage } from '@/pages/Settings'
+import { InfoPage } from '@/pages/Info'
+import { SysPage } from '@/pages/Sys'
 import { AuthModal, UsernameModal } from '@/components/Auth'
 import { useStore } from '@/store'
 import { useAuthStore } from '@/store/auth'
@@ -180,6 +182,7 @@ function Header() {
       <div className="flex items-center gap-2">
         <ThemeSwitcher />
         <div className="mx-1 h-5 w-px opacity-20" style={{ background: 'var(--t-text)' }} />
+        <NavBtn icon="ℹ️" label="Giới thiệu" onClick={() => navigate('/info')} />
         <NavBtn icon="📊" label="Thống kê" onClick={() => navigate('/dashboard')} />
         <NavBtn icon="🏆" label="Bảng xếp hạng" onClick={() => navigate('/leaderboard')} />
         <NavBtn icon="⚙️" label="Cài đặt" onClick={() => navigate('/settings')} />
@@ -275,6 +278,8 @@ export default function App() {
           <Route path="/practice" element={<PracticePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/info" element={<InfoPage />} />
+          <Route path="/sys" element={<SysPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
         </Routes>
